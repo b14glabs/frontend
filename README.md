@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Introduction
+This is a frontend project that provides a user interface for interacting with a delegate platform. The application allows users to view and manage their delegate activities, including delegating to validators and tracking delegate rewards.
 
-## Getting Started
+## Setup
+Before running the project, you need to set up a MongoDB connection. This requires setting the `MONGODB_URI` environment variable.
 
-First, run the development server:
+1. Create a `.env.local` file in the root of the project.
+2. Add the following line to the `.env.local` file:
+    ```env.local
+    MONGODB_URI=your_mongodb_connection_string
+    ```
+3. Save the file.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Run
+```yarn dev```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
+- **Dashboard Page**: Lists all available validators and allows users to select a validator to delegate their tokens.
+- **Validator Page**: Displays delegate history, account per share charts for the last 14 blocks, total CORE and BTC stake, and provides options to delegate and claim rewards.
+- **My Staking Page**: Allows users to view their total staked amount, reward history, and claim rewards.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Pages
 
-## Learn More
+### Dashboard Page
+The Dashboard page provides an overview of all available validators. Users can:
+- See a list of validators.
+- Select a validator to delegate their tokens.
 
-To learn more about Next.js, take a look at the following resources:
+### Validator Page
+The Validator page provides detailed information about a selected validator. Users can:
+- View the delegate history.
+- See account per share charts for the last 14 blocks.
+- Check the total CORE and BTC stake.
+- Delegate tokens to the validator.
+- Claim rewards. (Comming soon)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### My Staking Page
+The My Staking page allows users to manage their staking activities. Users can:
+- View the total amount they have staked.
+- See their reward history.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
