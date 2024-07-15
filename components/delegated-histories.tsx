@@ -1,0 +1,141 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { TooltipProvider, TooltipContent, TooltipTrigger, Tooltip } from '@/components/ui/tooltip';
+import { coreNetwork, mempoolUrl } from '@/constant/network';
+import { cn } from '@/lib/utils';
+import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
+import { DelegatedModel, DelegateHistory } from '@/types/model';
+import { formatAmount } from '@/utils/common';
+import { shortenString } from '@/utils/string';
+import { Info } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+export function DelegateBtcHistories({
+  setBtcTx,
+  btcTx,
+  forceUpdate,
+}: {
+  btcTx: DelegateHistory | undefined;
+  setBtcTx: (btcTx: DelegateHistory) => void;
+  forceUpdate?: boolean;
+}) {
+  const { address, connect } = useOkxWalletContext();
+  const [histories, setHistories] = useState<DelegateHistory[]>([]);
+  const [loading, setLoading] = useState<Boolean>(false);
+
+  const getHistory = async () => {
+    try {
+      if (!address) return;
+      setLoading(true);
+      const res = await fetch(`/api/delegated-btc-history/${address}`);
+      const data = (await res.json()) as DelegatedModel;
+      setHistories(data?.histories ?? []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (!address) {
+      connect();
+    }
+    getHistory();
+  }, [address]);
+
+  useEffect(() => {
+    if (!forceUpdate) return;
+    getHistory();
+  }, [forceUpdate]);
+
+  const divRef = useRef<HTMLDivElement>(null);
+  
+  return (
+    <div className="max-h-[300px] overflow-y-scroll" ref={divRef}>
+      <Table className="relative">
+        <TableHeader className="sticky top-0 bg-white">
+          <TableRow>
+            <TableHead className="">Staking Bitcoin Txn</TableHead>
+            <TableHead>Core Chain Txn</TableHead>
+            <TableHead>BTC Delegated</TableHead>
+            <TableHead className="text-right">End Reward Round</TableHead>
+            {/* <TableHead className="text-right">Unlock Time</TableHead> */}
+            <TableHead className="text-right">CORE Required 
+            <TooltipProvider delayDuration={300}>
+            <Tooltip>
+            <TooltipContent>
+              
+              <TooltipTrigger asChild>
+                <Info className="text-muted-foreground" size={20} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Nothing</p>
+              </TooltipContent>
+            </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {histories?.map((history, index) => (
+            <TableRow
+              key={`btc-delegated-${index}`}
+              onClick={() => setBtcTx(history)}
+              className={cn('hover:bg-white', {
+                '!bg-slate-300 font-semibold':
+                  history.bitcoinTxId === btcTx?.bitcoinTxId,
+              })}
+            >
+              <TableCell className="font-medium">
+                <a
+                  href={`${mempoolUrl}/tx/${history.bitcoinTxId.slice(2)}`}
+                  target="_blank"
+                >
+                  {shortenString(history.bitcoinTxId.slice(2))}
+                </a>
+              </TableCell>
+              <TableCell className="font-medium">
+                <a
+                  href={`${coreNetwork.blockExplorerUrl}/tx/${history.coreTxId}`}
+                  target="_blank"
+                >
+                  {shortenString(history.coreTxId)}
+                </a>
+              </TableCell>
+              <TableCell>
+                <span className="font-bold">
+                  {formatAmount(+history.value / 1e8, 3)}
+                </span>{' '}
+                BTC
+              </TableCell>
+              <TableCell className="text-right">{history.endRound}</TableCell>
+              {/* <TableCell className="text-right">-</TableCell> */}
+              <TableCell className="text-right">
+                <span className="font-bold">
+                  {formatAmount(
+                    (parseInt(history.value.toString()) * 12) / 1e9,
+                    3,
+                  )}
+                </span>{' '}
+                CORE
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {!loading && histories?.length === 0 && (
+        <div className="text-center my-6 text-sm">No Data to Display</div>
+      )}
+      <div className="text-xs text-center text-muted-foreground">
+        A list of your recent btc transaction delegate at Core.
+      </div>
+    </div>
+  );
+}
