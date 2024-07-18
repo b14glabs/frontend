@@ -32,13 +32,18 @@ import { useValidatorContext } from '@/provider/validator-provider';
 import { formatAmount, getErrorMessage } from '@/utils/common';
 import { switchOrCreateNetwork } from '@/utils/wallet';
 import Web3 from 'web3';
-type PriceFeedData = {
+import { useDashboardContext } from '@/provider/dashboard-provider';
+import { shortenString } from '@/utils/string';
+import { SelectTxLock } from '@/components/stakeDrawer/select-tx';
+import { SelectCoreValidator } from '@/components/stakeDrawer/select-core-validator';
+import { Record, SearchCandidateCoreDao } from '@/types/coredao';
+export type PriceFeedData = {
   price: string;
   decimal: number;
   timestamp: string;
 };
 
-const formatBalance = (balance: string, decimal = 18) =>
+export const formatBalance = (balance: string, decimal = 18) =>
   ethers.formatUnits(balance, decimal);
 
 const coreProvider = new ethers.JsonRpcProvider(coreNetwork.rpcUrl);
@@ -46,7 +51,11 @@ const coreProvider = new ethers.JsonRpcProvider(coreNetwork.rpcUrl);
 export default function StakeDrawer() {
   const { account, provider, address, connect, evmProvider, signer, chainId } =
     useOkxWalletContext();
+  const { coredaoValidators, coreBalance, vBtcBalance } = useDashboardContext();
   const { validatorAddress } = useValidatorContext();
+
+
+
   const vBtcContract = useContract(
     CONTRACT_ADDRESS.stakeX3Btc,
     bep20Abi,
@@ -76,11 +85,12 @@ export default function StakeDrawer() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [btcTx, setBtcTx] = useState<DelegateHistory>();
-  const [coreBalance, setCoreBalance] = useState<string>('0');
-  const [vBtcBalance, setvBtcBalance] = useState<string>('0');
   const [priceFeedData, setPriceFeedData] = useState<PriceFeedData>();
   const [loadingGenerateMock, setLoadingGenerateMock] = useState(false);
   const [forceUpdateHistory, setForceUpdateHistory] = useState(false);
+  const [step, setStep] = useState(1);
+  const [coreValidator, setCoreValidator] = useState<Record | undefined>()
+  
 
   const {
     modalStatus,
@@ -94,37 +104,18 @@ export default function StakeDrawer() {
   } = useModal();
 
   const getData = async () => {
-    getVbtcBalance();
     getPriceFeed();
-    getCoreBalance();
   };
 
   const getPriceFeed = async () => {
     try {
       const priceFeed = await priceFeedContract.getLastData();
+      console.log("price feed", priceFeed)
       setPriceFeedData({
         price: priceFeed[0].toString(),
         decimal: Number(priceFeed[1]),
         timestamp: priceFeed[2].toString(),
       });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const getVbtcBalance = async () => {
-    try {
-      const balance = await vBtcContract.balanceOf(address);
-      setvBtcBalance(balance.toString());
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const getCoreBalance = async () => {
-    try {
-      const coreBalance = await coreProvider.getBalance(address);
-      setCoreBalance(coreBalance.toString());
     } catch (error) {
       console.error(error);
     }
@@ -164,7 +155,7 @@ export default function StakeDrawer() {
         mockData.btcBlockHeight,
         0,
       );
-      await tx.wait()
+      await tx.wait();
       await fetch('/api/new-delegated-btc', {
         method: 'POST',
         body: JSON.stringify({
@@ -194,9 +185,11 @@ export default function StakeDrawer() {
       setModalStatus('LOADING');
       setModalTitle('');
       setModalHash('');
-      const round = Math.round(Date.now() / 86400000)
-      if(+btcTx.endRound < round){
-        setModalTitle(`End round must greater than current round. Current is ${round}`);
+      const round = Math.round(Date.now() / 86400000);
+      if (+btcTx.endRound < round) {
+        setModalTitle(
+          `End round must greater than current round. Current is ${round}`,
+        );
         setModalStatus('ERROR');
         return;
       }
@@ -216,22 +209,12 @@ export default function StakeDrawer() {
         setModalStatus('ERROR');
         return;
       }
-
-      if (BigInt(vBtcBalance) < btcTxValue) {
-        setModalTitle('Not enough vBTC balance');
-        setModalStatus('ERROR');
-        return;
-      }
       await switchOrCreateNetwork(chainId);
       setModalTitle('Transfer VBTC to contract');
-      const transferVbtcTx = await vBtcContract.transfer(
-        CONTRACT_ADDRESS.txManagement,
-        btcTx.value,
-      );
-      await transferVbtcTx.wait();
       setModalTitle('Stake');
-      const stakeTx = await restakeHackathonContract.reStake(
+      const stakeTx = await restakeHackathonContract.reStakeAndDelegate(
         btcTx?.bitcoinTxId,
+        coreValidator?.operatorAddressHash,
         {
           value: amountCoreRequired,
         },
@@ -263,69 +246,73 @@ export default function StakeDrawer() {
     }
   };
 
+  const handleButton = () => {
+    switch (step){
+      case 1:
+        setStep(2)
+        break;
+      case 2:
+        restake()
+    }
+  }
+
+  const backBtn = () => {
+    if(step === 2){
+      setStep(1)
+    }
+  }
+
+  const buttonSubmitDisable = () => {
+    if(step === 1 && !btcTx) return true;
+    if(step === 2 && !coreValidator) return true
+    return false
+  }
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild onClick={clearBtcTx}>
         <Button>Delegate</Button>
       </DrawerTrigger>
       <DrawerContent>
+        <LoadingModal
+          modalStatus={modalStatus}
+          modalOpen={modalOpen}
+          setModalOpen={setModalOpen}
+          modalTitle={modalTitle}
+          modalHash={modalHash}
+        />
         <div className="mx-auto container max-h-[90vh]">
-          <DrawerHeader>
-            <div className="flex justify-between">
-              <div>
-                <LoadingModal
-                  modalStatus={modalStatus}
-                  modalOpen={modalOpen}
-                  setModalOpen={setModalOpen}
-                  modalTitle={modalTitle}
-                  modalHash={modalHash}
-                />
-                <DrawerTitle className="mb-2">Restake</DrawerTitle>
-                <DrawerDescription>
-                  Choose your Bitcoin transaction delegate prior to restaking.
-                </DrawerDescription>
-              </div>
-              <div className="select-text flex flex-col items-end gap-1">
-                <div>
-                  <span className="text-sm">Your CORE | BTC</span> :{' '}
-                  <span className="font-bold">
-                    {formatAmount(+coreBalance / 1e18, 4)}
-                  </span>{' '}
-                  |{' '}
-                  <span className="font-bold">
-                    {formatBalance(vBtcBalance, 8)}
-                  </span>
-                </div>
-                <Button
-                  className="w-min text-sm bg-green-600 hover:bg-green-700"
-                  onClick={generate}
-                  disabled={!!loadingGenerateMock}
-                >
-                  Generate lock btc{' '}
-                  {loadingGenerateMock && (
-                    <ReloadIcon className="ml-1 h-4 w-4 animate-spin" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DrawerHeader>
-          <div className="p-4 pb-0 select-text">
-            <DelegateBtcHistories
+          {step === 1 && (
+            <SelectTxLock
+              btcTx={btcTx as DelegateHistory}
+              coreBalance={coreBalance}
+              vBtcBalance={vBtcBalance}
+              forceUpdateHistory={forceUpdateHistory}
+              generate={generate}
+              loadingGenerateMock={loadingGenerateMock}
+              priceFeedData={priceFeedData as PriceFeedData}
               setBtcTx={setBtcTx}
-              btcTx={btcTx}
-              forceUpdate={forceUpdateHistory}
             />
-          </div>
+          )}
+          {step === 2 && <SelectCoreValidator setCoreValidator={setCoreValidator} coreValidator={coreValidator}/>}
           <DrawerFooter>
-            <Button
+            {/* <Button
               disabled={!!!btcTx?.bitcoinTxId || loading}
               onClick={restake}
             >
               {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
               Submit
+            </Button> */}
+            <div className='grid grid-cols-2 gap-6'>
+            <Button onClick={backBtn} variant={'outline'} className='border-neutral-500' disabled={step === 1}>
+              Back
             </Button>
+            <Button onClick={handleButton} disabled={buttonSubmitDisable()}>
+              {step === 1 ? "Next (Choose core validator)" : "Submit"}
+            </Button>
+            
+            </div>
             <DrawerClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" className='mt-3'>Cancel</Button>
             </DrawerClose>
           </DrawerFooter>
         </div>

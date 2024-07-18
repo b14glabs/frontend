@@ -6,8 +6,8 @@ import { CONTRACT_ADDRESS } from '@/constant/web3';
 import { useContract } from '@/hooks/useContract';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { RestakeHistory, RestakeHistoryWithLoading } from '@/types/model';
-import { getErrorMessage } from '@/utils/common';
-import { Contract, JsonRpcProvider } from 'ethers';
+import { formatAmount, getErrorMessage } from '@/utils/common';
+import { Contract, formatEther, JsonRpcProvider, parseEther } from 'ethers';
 import {
   FC,
   ReactNode,
@@ -90,10 +90,10 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
 
   const getData = async () => {
     try {
-        getAccPerShare()
-        getTotalStake()
-        getRestakeHistory()
-        getCommission()
+      getAccPerShare();
+      getTotalStake();
+      getRestakeHistory();
+      getCommission();
     } catch (error) {
       console.error(error);
       toast.error(getErrorMessage(error));
@@ -101,7 +101,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
   };
 
   const getCommission = async () => {
-    const res = await sentryContract.getAllSentries();
+    const res = await sentryContract.getAllOperators();
     const validatorList = res[0];
     validatorList.forEach((el: any) => {
       if (el[3].toLowerCase() === validatorAddress.toLowerCase()) {
@@ -112,6 +112,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
   const getTotalStake = async () => {
     try {
       const res = await restakeHackthonContract.getPoolTotalStake(); // 0: amount, 1: prevUnlockTime
+      console.log("delegated coin :", res.amount.toString())
       setDelegatedCoin(res.amount.toString());
     } catch (error) {
       console.error(error);
@@ -121,25 +122,25 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
   const getAccPerShare = async () => {
     const round = Math.round(Date.now() / 86400000);
     const listData = await Promise.all(
-      new Array(14)
-        .fill(0)
-        .map((_, idx) => {
-          return restakeHackthonContract.accPerShare(round - idx)
-        }),
+      new Array(14).fill(0).map((_, idx) => {
+        return restakeHackthonContract.accPerShare(round - idx);
+      }),
     );
-    setAccPerShares(listData.map((el) => el.toString()));
-    await calApr(listData.map((el) => el.toString()));
+    const result = listData.map((el) => el.toString()).reverse();
+    console.log("acc per share", result)
+    setAccPerShares(result);
+    await calApr(result);
   };
 
   const calApr = async (accPerShares: Array<string>) => {
+    console.log("accPerShares ", accPerShares)
     if (accPerShares && accPerShares.length === TWO_WEEK_DAYS) {
       const restakeApr =
-        (((Number(accPerShares[accPerShares.length - 1]) -
+        (((Number(accPerShares[accPerShares.length - 2]) -
           Number(accPerShares[0])) /
-          14) *
-          365) /
-        100;
-      setRestakeApr(restakeApr.toString());
+          13) * 100 * 365 * (1/60000)
+          ) ;
+      setRestakeApr((restakeApr / 1e8).toString());
       return;
     }
     console.error('not enough data to cal apr');
@@ -186,8 +187,9 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     try {
       if (!address) return setReward('0');
       const data = await restakeHackthonContract.currentReward.staticCall(
-        address,
+        "0x5249219dfd314615215931E5Db283FfCd06ea71e",
       );
+      console.log("asd", data)
       setReward(data.toString());
     } catch (error) {
       setReward('0');
@@ -220,8 +222,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       getRestakeHistory,
       currentAccPerShare:
         accPerShares && accPerShares.length > 1
-          ? Number(accPerShares[accPerShares.length - 1]) -
-            Number(accPerShares[accPerShares.length - 2])
+          ? formatAmount(+accPerShares[accPerShares.length - 1])
           : 0,
     };
   }, [

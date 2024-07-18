@@ -11,9 +11,13 @@ import { Separator } from '@/components/ui/separator';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { shortenString } from '@/utils/string';
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 export const Header = () => {
   const { account, connect, address } = useOkxWalletContext();
+  useEffect(() => {
+    connect();
+  }, []);
   return (
     <>
       <div className="w-full mt-4 container flex justify-between items-center">

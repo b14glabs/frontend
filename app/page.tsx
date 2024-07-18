@@ -58,7 +58,7 @@ export default function Home() {
         CONTRACT_ADDRESS.sentry,
       );
       const allSentries = (await contract.methods
-        .getAllSentries()
+        .getAllOperators()
         .call()) as any;
       const map: { [key: string]: string } = {};
       allSentries[0].forEach((el: Validator) => {

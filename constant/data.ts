@@ -4053,5 +4053,6 @@ export const MOCK_DATA = [
 export function getRandomData() {
   let data = MOCK_DATA[Math.floor(Math.random() * MOCK_DATA.length)];
   data.endRound = Math.round(Date.now() / 86400000) + 200
+  data.btcValue = '400000000';
   return data
 }

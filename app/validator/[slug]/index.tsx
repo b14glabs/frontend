@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 
 import { Metric } from '@/components/metric';
 import { RestakeRecord } from '@/components/restake-record';
-import StakeDrawer from '@/components/stake-drawer';
+import StakeDrawer from '@/components/stakeDrawer/stake-drawer';
 import { Overview } from '@/components/validator-overview';
 import { useValidatorContext } from '@/provider/validator-provider';
 

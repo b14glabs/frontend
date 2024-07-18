@@ -25,10 +25,6 @@ export default function MyStakingPage() {
   const { modalStatus, modalTitle, modalOpen, setModalOpen, modalHash } =
     useModal();
 
-  useEffect(() => {
-    connect();
-  }, []);
-
   const claim = async () => {};
 
   return (

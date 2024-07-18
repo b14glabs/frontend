@@ -22,6 +22,7 @@ import { shortenString } from '@/utils/string';
 import { Contract } from 'ethers';
 import { useEffect } from 'react';
 import { DelegatorIcon } from '@/components/icon/delegator-icon';
+import { UnbondCard } from '@/components/unbond-card';
 
 export const Metric = () => {
   const { coreApr } = useDashboardContext();
@@ -55,10 +56,6 @@ export const Metric = () => {
     signer,
   ) as Contract;
 
-  useEffect(() => {
-    connect();
-  }, []);
-
   const claim = async () => {
     try {
       setModalOpen(true);
@@ -83,6 +80,14 @@ export const Metric = () => {
     }
   };
 
+
+  const unbond = () => {
+    try {
+      
+    } catch (error) {
+      console.error(error)
+    }
+  };
   return (
     <div className="flex flex-wrap gap-4 justify-center -mx-2">
       <LoadingModal
@@ -92,7 +97,7 @@ export const Metric = () => {
         modalTitle={modalTitle}
         modalHash={modalHash}
       />
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Delegated Coin</CardTitle>
         </CardHeader>
@@ -102,7 +107,7 @@ export const Metric = () => {
           </div>
         </CardContent>
       </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Max APR</CardTitle>
           <TooltipProvider delayDuration={300}>
@@ -129,7 +134,7 @@ export const Metric = () => {
                 <p>
                   Validator Apr:{' '}
                   <span className="font-bold">
-                    {formatAmount(+restakeApr, 3)}
+                    {formatAmount(+restakeApr, 5)}
                   </span>{' '}
                   %
                 </p>
@@ -143,7 +148,7 @@ export const Metric = () => {
           </div>
         </CardContent>
       </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
+      {/* <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
             Account Per Share
@@ -162,8 +167,8 @@ export const Metric = () => {
         <CardContent className="mt-4">
           <div className="text-2xl font-bold">{currentAccPerShare}</div>
         </CardContent>
-      </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
+      </Card> */}
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Commission</CardTitle>
           <TooltipProvider delayDuration={300}>
@@ -181,7 +186,7 @@ export const Metric = () => {
           <div className="text-2xl font-bold">{commission} %</div>
         </CardContent>
       </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">BTC Delegators</CardTitle>
           <DelegatorIcon />
@@ -190,7 +195,7 @@ export const Metric = () => {
           <div className="text-2xl font-bold">{delegatorsCount}</div>
         </CardContent>
       </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
             Operator Address
@@ -214,7 +219,7 @@ export const Metric = () => {
           </div>
         </CardContent>
       </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Your reward</CardTitle>
           <TooltipProvider delayDuration={300}>
@@ -230,13 +235,17 @@ export const Metric = () => {
         </CardHeader>
         <CardContent className="mt-4">
           <div className="font-bold flex justify-between items-center">
-            <p className="text-lg">{formatAmount(+reward / 1e18)} B14G </p>
-            <Button onClick={claim} disabled={Number(reward) === 0}>
+            <p className="text-lg">{formatAmount(+reward / 1e18, 3)} B14G </p>
+            <Button
+              onClick={claim}
+              disabled={Number(formatAmount(+reward / 1e18, 3)) === 0}
+            >
               Claim
             </Button>
           </div>
         </CardContent>
       </Card>
+      <UnbondCard />
     </div>
   );
 };

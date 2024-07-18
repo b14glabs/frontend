@@ -99,7 +99,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "xgAIAmount",
+        "name": "coreAmount",
         "type": "uint256"
       }
     ],
@@ -160,16 +160,63 @@
   },
   {
     "inputs": [],
-    "name": "claimReward",
+    "name": "claimCore",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claimMonitorReward",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "claimSentryReward",
+    "name": "claimReward",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "coreValidatorStakedByUser",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "validator",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "accPerShare",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pendingCore",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -232,7 +279,7 @@
     "inputs": [
       {
         "internalType": "contract IERC20",
-        "name": "_xgAI",
+        "name": "_core",
         "type": "address"
       },
       {
@@ -256,8 +303,8 @@
         "type": "address"
       },
       {
-        "internalType": "contract ISentryManager",
-        "name": "_sentryManager",
+        "internalType": "contract IMonitor",
+        "name": "_monitorManager",
         "type": "address"
       },
       {
@@ -275,7 +322,7 @@
     "inputs": [
       {
         "internalType": "contract IERC20",
-        "name": "_xgAI",
+        "name": "_core",
         "type": "address"
       },
       {
@@ -299,8 +346,8 @@
         "type": "address"
       },
       {
-        "internalType": "contract ISentryManager",
-        "name": "_sentryManager",
+        "internalType": "contract IMonitor",
+        "name": "_monitorManager",
         "type": "address"
       },
       {
@@ -337,6 +384,13 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "init",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -391,6 +445,32 @@
   },
   {
     "inputs": [],
+    "name": "monitorManager",
+    "outputs": [
+      {
+        "internalType": "contract IMonitor",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "monitorReward",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "owner",
     "outputs": [
       {
@@ -408,6 +488,19 @@
     "outputs": [
       {
         "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pledgeAgent",
+    "outputs": [
+      {
+        "internalType": "contract PledgeAgent",
         "name": "",
         "type": "address"
       }
@@ -466,6 +559,30 @@
       }
     ],
     "name": "reStake",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "txHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "coreValidator",
+        "type": "address"
+      }
+    ],
+    "name": "reStakeAndDelegate",
     "outputs": [],
     "stateMutability": "payable",
     "type": "function"
@@ -475,32 +592,6 @@
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "sentryManager",
-    "outputs": [
-      {
-        "internalType": "contract ISentryManager",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "sentryReward",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -525,56 +616,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "bytes",
-        "name": "",
-        "type": "bytes"
-      },
-      {
-        "components": [
-          {
-            "internalType": "bytes8",
-            "name": "amount",
-            "type": "bytes8"
-          },
-          {
-            "internalType": "bytes",
-            "name": "size",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bytes",
-            "name": "scriptPubkey",
-            "type": "bytes"
-          }
-        ],
-        "internalType": "struct IVerifyV2.OutputTx[]",
-        "name": "",
-        "type": "tuple[]"
-      },
-      {
-        "internalType": "bytes",
-        "name": "",
-        "type": "bytes"
-      },
-      {
-        "internalType": "bytes",
-        "name": "",
-        "type": "bytes"
-      }
-    ],
-    "name": "stake",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint96",
-        "name": "blockNumber",
-        "type": "uint96"
-      },
       {
         "components": [
           {
@@ -606,14 +647,9 @@
             "internalType": "bytes32",
             "name": "previousHash",
             "type": "bytes32"
-          },
-          {
-            "internalType": "uint256",
-            "name": "createdAt",
-            "type": "uint256"
           }
         ],
-        "internalType": "struct IBlockHash.BlockInfo",
+        "internalType": "struct IMonitor.BlockInfo",
         "name": "confirmInfo",
         "type": "tuple"
       }
@@ -632,6 +668,19 @@
       }
     ],
     "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newCoreValidator",
+        "type": "address"
+      }
+    ],
+    "name": "transferValidatorCore",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -665,30 +714,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint64",
-        "name": "btcAmount",
-        "type": "uint64"
-      }
-    ],
-    "name": "unbondPreview",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "",
         "type": "address"
@@ -703,7 +728,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "xgAIAmount",
+        "name": "coreAmount",
         "type": "uint256"
       },
       {
@@ -772,5 +797,33 @@
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "validators",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "accPerShare",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalStake",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]

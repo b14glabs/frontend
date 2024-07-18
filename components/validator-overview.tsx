@@ -1,6 +1,8 @@
 'use client';
 
 import { useValidatorContext } from '@/provider/validator-provider';
+import { formatAmount } from '@/utils/common';
+import { formatEther } from 'ethers';
 import {
   Area,
   AreaChart,
@@ -14,16 +16,12 @@ import {
 export function Overview() {
   const { accPerShares } = useValidatorContext();
   const copyData = [...accPerShares];
+  const round = Math.round(Date.now() / 86400000)
+  copyData.reverse()
   const data = copyData.map((acc, idx) => {
-    const currentDay = new Date(
-      Date.now() - (13 - idx) * 86400 * 1000,
-    ).toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'long',
-    });
     return {
-      name: currentDay,
-      accPerShares: acc,
+      name: round - idx,
+      accPerShares: formatAmount(+acc),
     };
   });
   return (
@@ -31,7 +29,7 @@ export function Overview() {
       <AreaChart
         width={730}
         height={250}
-        data={data}
+        data={data.reverse()}
         margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
       >
         <defs>

@@ -1,3 +1,4 @@
+import { PriceFeedData } from '@/components/stakeDrawer/stake-drawer';
 import {
   Table,
   TableBody,
@@ -6,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { TooltipProvider, TooltipContent, TooltipTrigger, Tooltip } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { coreNetwork, mempoolUrl } from '@/constant/network';
 import { cn } from '@/lib/utils';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
@@ -20,10 +21,12 @@ export function DelegateBtcHistories({
   setBtcTx,
   btcTx,
   forceUpdate,
+  priceFeedData
 }: {
   btcTx: DelegateHistory | undefined;
   setBtcTx: (btcTx: DelegateHistory) => void;
   forceUpdate?: boolean;
+  priceFeedData: PriceFeedData
 }) {
   const { address, connect } = useOkxWalletContext();
   const [histories, setHistories] = useState<DelegateHistory[]>([]);
@@ -35,6 +38,7 @@ export function DelegateBtcHistories({
       setLoading(true);
       const res = await fetch(`/api/delegated-btc-history/${address}`);
       const data = (await res.json()) as DelegatedModel;
+      console.log(data)
       setHistories(data?.histories ?? []);
     } catch (error) {
       console.error(error);
@@ -43,19 +47,16 @@ export function DelegateBtcHistories({
     }
   };
   useEffect(() => {
-    if (!address) {
-      connect();
-    }
     getHistory();
   }, [address]);
 
   useEffect(() => {
-    if (!forceUpdate) return;
+    // if (!forceUpdate) return;
     getHistory();
   }, [forceUpdate]);
 
   const divRef = useRef<HTMLDivElement>(null);
-  
+  console.log(priceFeedData)
   return (
     <div className="max-h-[300px] overflow-y-scroll" ref={divRef}>
       <Table className="relative">
@@ -111,7 +112,7 @@ export function DelegateBtcHistories({
               </TableCell>
               <TableCell>
                 <span className="font-bold">
-                  {formatAmount(+history.value / 1e8, 3)}
+                  {formatAmount(+history.value / 1e8, 7)}
                 </span>{' '}
                 BTC
               </TableCell>
@@ -120,8 +121,8 @@ export function DelegateBtcHistories({
               <TableCell className="text-right">
                 <span className="font-bold">
                   {formatAmount(
-                    (parseInt(history.value.toString()) * 12) / 1e9,
-                    3,
+                    (parseInt(history.value.toString()) * 3 * Number(+priceFeedData?.price / 1e18)) / 1e9,
+                    9,
                   )}
                 </span>{' '}
                 CORE

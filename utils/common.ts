@@ -12,7 +12,7 @@ export const getErrorMessage = (error: unknown) => {
   return message;
 };
 
-export function formatAmount(number: number, precision = 2) {
+export function formatAmount(number: number, precision = 5) {
   return +number.toFixed(precision);
 }
 export function formatNumberWithCommas(x: number) {

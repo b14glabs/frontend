@@ -5,7 +5,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "sentryAddress",
+        "name": "operatorAddress",
         "type": "address"
       },
       {
@@ -45,15 +45,10 @@
             "internalType": "bytes32",
             "name": "previousHash",
             "type": "bytes32"
-          },
-          {
-            "internalType": "uint256",
-            "name": "createdAt",
-            "type": "uint256"
           }
         ],
         "indexed": false,
-        "internalType": "struct IBlockHash.BlockInfo",
+        "internalType": "struct IMonitor.BlockInfo",
         "name": "confirmInfo",
         "type": "tuple"
       }
@@ -80,7 +75,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "_sentryAddress",
+        "name": "_operatorAddress",
         "type": "address"
       },
       {
@@ -117,6 +112,57 @@
       }
     ],
     "name": "MinStakeAmountUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "_operatorAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "_commission",
+        "type": "uint16"
+      }
+    ],
+    "name": "OperatorAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "_operatorAddress",
+        "type": "address"
+      }
+    ],
+    "name": "OperatorRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "_operatorAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "_active",
+        "type": "bool"
+      }
+    ],
+    "name": "OperatorUpdated",
     "type": "event"
   },
   {
@@ -208,57 +254,6 @@
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "_sentryAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "_commission",
-        "type": "uint16"
-      }
-    ],
-    "name": "SentryAdded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "_sentryAddress",
-        "type": "address"
-      }
-    ],
-    "name": "SentryRemoved",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "_sentryAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "_active",
-        "type": "bool"
-      }
-    ],
-    "name": "SentryUpdated",
-    "type": "event"
-  },
-  {
     "inputs": [],
     "name": "DEFAULT_ADMIN_ROLE",
     "outputs": [
@@ -275,7 +270,7 @@
     "inputs": [
       {
         "internalType": "address[]",
-        "name": "_sentryAddresses",
+        "name": "_operatorAddresses",
         "type": "address[]"
       },
       {
@@ -284,7 +279,7 @@
         "type": "uint16[]"
       }
     ],
-    "name": "addMultipleSentries",
+    "name": "addMultipleOperators",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -293,7 +288,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_sentryAddress",
+        "name": "_operatorAddress",
         "type": "address"
       },
       {
@@ -302,22 +297,9 @@
         "type": "uint16"
       }
     ],
-    "name": "addSentry",
+    "name": "addOperator",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "blockHash",
-    "outputs": [
-      {
-        "internalType": "contract IBlockHash",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -361,11 +343,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_sentryAddress",
+        "name": "_operatorAddress",
         "type": "address"
       }
     ],
-    "name": "checkAvailableSentry",
+    "name": "checkAvailableOperator",
     "outputs": [
       {
         "internalType": "bool",
@@ -380,7 +362,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "sentryAddress",
+        "name": "operatorAddress",
         "type": "address"
       }
     ],
@@ -407,7 +389,7 @@
   },
   {
     "inputs": [],
-    "name": "getAllSentries",
+    "name": "getAllOperators",
     "outputs": [
       {
         "components": [
@@ -432,7 +414,7 @@
             "type": "address"
           }
         ],
-        "internalType": "struct SentryManager.Sentry[]",
+        "internalType": "struct Monitor.Operator[]",
         "name": "",
         "type": "tuple[]"
       },
@@ -440,6 +422,70 @@
         "internalType": "address[]",
         "name": "",
         "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "start",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "length",
+        "type": "uint256"
+      }
+    ],
+    "name": "getOperators",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint16",
+            "name": "commission",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalAssertion",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "contractAddress",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct Monitor.Operator[]",
+        "name": "",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getOperatorsLength",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -497,70 +543,6 @@
       }
     ],
     "name": "getRoleMemberCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "start",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "length",
-        "type": "uint256"
-      }
-    ],
-    "name": "getSentries",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "bool",
-            "name": "active",
-            "type": "bool"
-          },
-          {
-            "internalType": "uint16",
-            "name": "commission",
-            "type": "uint16"
-          },
-          {
-            "internalType": "uint256",
-            "name": "totalAssertion",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "contractAddress",
-            "type": "address"
-          }
-        ],
-        "internalType": "struct SentryManager.Sentry[]",
-        "name": "",
-        "type": "tuple[]"
-      },
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getSentriesLength",
     "outputs": [
       {
         "internalType": "uint256",
@@ -639,13 +621,13 @@
         "type": "uint256"
       },
       {
-        "internalType": "contract IBlockHash",
+        "internalType": "address",
         "name": "_blockHash",
         "type": "address"
       },
       {
         "internalType": "contract IERC20",
-        "name": "_xgAI",
+        "name": "_core",
         "type": "address"
       },
       {
@@ -700,6 +682,40 @@
         "type": "address"
       }
     ],
+    "name": "operators",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "active",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint16",
+        "name": "commission",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalAssertion",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "name": "pendingRewardBlock",
     "outputs": [
       {
@@ -715,11 +731,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_sentryAddress",
+        "name": "_operatorAddress",
         "type": "address"
       }
     ],
-    "name": "removeSentry",
+    "name": "removeOperator",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -777,34 +793,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "_blockHash",
         "type": "address"
       }
     ],
-    "name": "sentries",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "active",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint16",
-        "name": "commission",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalAssertion",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "setBlockHash",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -886,14 +881,9 @@
             "internalType": "bytes32",
             "name": "previousHash",
             "type": "bytes32"
-          },
-          {
-            "internalType": "uint256",
-            "name": "createdAt",
-            "type": "uint256"
           }
         ],
-        "internalType": "struct IBlockHash.BlockInfo",
+        "internalType": "struct IMonitor.BlockInfo",
         "name": "blockInfo",
         "type": "tuple"
       }
@@ -904,13 +894,8 @@
   {
     "inputs": [
       {
-        "internalType": "uint96",
-        "name": "blockNumber",
-        "type": "uint96"
-      },
-      {
         "internalType": "address",
-        "name": "sentryAddress",
+        "name": "monitorAddress",
         "type": "address"
       },
       {
@@ -944,14 +929,9 @@
             "internalType": "bytes32",
             "name": "previousHash",
             "type": "bytes32"
-          },
-          {
-            "internalType": "uint256",
-            "name": "createdAt",
-            "type": "uint256"
           }
         ],
-        "internalType": "struct IBlockHash.BlockInfo",
+        "internalType": "struct IMonitor.BlockInfo",
         "name": "confirmInfo",
         "type": "tuple"
       }
@@ -1025,21 +1005,8 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_rewardPerBlock",
-        "type": "uint256"
-      }
-    ],
-    "name": "updateRewardPerBlock",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
-        "name": "_sentryAddress",
+        "name": "_operatorAddress",
         "type": "address"
       },
       {
@@ -1048,7 +1015,20 @@
         "type": "bool"
       }
     ],
-    "name": "updateSentry",
+    "name": "updateOperator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_rewardPerBlock",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateRewardPerBlock",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

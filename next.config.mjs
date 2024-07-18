@@ -13,7 +13,7 @@ const nextConfig = {
     return [
       {
         source: '/api/staking/:path*',
-        destination: 'https://stake.coredao.org/api/staking/:path*',
+        destination: 'https://stake.test.btcs.network/api/staking/:path*',
       },
     ];
   },
