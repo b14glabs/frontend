@@ -33,17 +33,17 @@ export function SelectCoreValidator({
   const { coreValidatorStakedByUserAddress } = useValidatorContext();
 
   useEffect(() => {
-    if (!coreValidatorStakedByUserAddress) return;
+    if (coreValidatorStakedByUserAddress === "0x0000000000000000000000000000000000000000") return;
     coredaoValidators.forEach((validator) => {
       if (
         validator.operatorAddressHash.toLowerCase() ===
-        coreValidatorStakedByUserAddress.toLowerCase()
+        coreValidatorStakedByUserAddress?.toLowerCase()
       ) {
         setCoreValidator(validator);
       }
     });
   }, [coreValidatorStakedByUserAddress]);
-
+  console.log(coreValidator)
   console.log(coreValidatorStakedByUserAddress, Boolean(coreValidatorStakedByUserAddress))
   return (
     <div className="max-h-[300px] overflow-y-scroll">
@@ -60,7 +60,9 @@ export function SelectCoreValidator({
             <TableRow
               key={validator.operatorAddressHash}
               onClick={() => {
-                if (!coreValidatorStakedByUserAddress) {
+                console.log("coreValidatorStakedByUserAddress",coreValidatorStakedByUserAddress, Boolean(coreValidatorStakedByUserAddress))
+                if (coreValidatorStakedByUserAddress === "0x0000000000000000000000000000000000000000") {
+                  console.log("run")
                   setCoreValidator(validator);
                 }
               }}
@@ -79,7 +81,7 @@ export function SelectCoreValidator({
                     ? validator.operatorAddress.candidateName
                     : shortenString(validator.operatorAddressHash, 4)}
                 </a>
-                {coreValidatorStakedByUserAddress && validator.operatorAddressHash ===
+                {coreValidatorStakedByUserAddress !== "0x0000000000000000000000000000000000000000" && validator.operatorAddressHash ===
                   coreValidator?.operatorAddressHash && (
                   <TooltipProvider delayDuration={300}>
                   <Tooltip>

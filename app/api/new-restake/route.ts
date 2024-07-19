@@ -7,7 +7,7 @@ interface EventData {
   txHash: string;
   unlockTime: bigint;
   btcAmount: bigint;
-  xgAIAmount: bigint;
+  coreAmount: bigint;
 }
 const inputAbi = [
   {
@@ -31,7 +31,7 @@ const inputAbi = [
   {
     indexed: false,
     internalType: 'uint256',
-    name: 'xgAIAmount',
+    name: 'coreAmount',
     type: 'uint256',
   },
 ];
@@ -77,17 +77,16 @@ export async function POST(req: NextRequest) {
       log.data as string,
       log.topics?.slice(1) as string[],
     );
-    console.log("decodedLog :", decodedLog);
     const eventData: EventData = {
       txHash: decodedLog.txHash as string,
       unlockTime: decodedLog.unlockTime as bigint,
       btcAmount: decodedLog.btcAmount as bigint,
-      xgAIAmount: decodedLog.xgAIAmount as bigint,
+      coreAmount: decodedLog.coreAmount as bigint,
     };
 
     // Use for save to restake history col
     result = {
-      coreAmount: eventData.xgAIAmount.toString(),
+      coreAmount: eventData.coreAmount.toString(),
       unlockTime: eventData.unlockTime.toString(),
       btcAmount: eventData.btcAmount.toString(),
       coreTxId: transactionData.transactionHash.toString(),
