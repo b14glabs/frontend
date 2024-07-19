@@ -239,8 +239,6 @@ export default function StakeDrawer() {
           {step === 1 && (
             <SelectTxLock
               btcTx={btcTx as DelegateHistory}
-              coreBalance={coreBalance}
-              vBtcBalance={vBtcBalance}
               forceUpdateHistory={forceUpdateHistory}
               generate={generate}
               loadingGenerateMock={loadingGenerateMock}

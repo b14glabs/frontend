@@ -1,4 +1,4 @@
-import { PriceFeedData } from '@/components/stakeDrawer/stake-drawer';
+import { PriceFeedData } from '@/types';
 import {
   Table,
   TableBody,
