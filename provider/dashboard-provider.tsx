@@ -14,12 +14,14 @@ import { Dashboard, Validator } from '@/types/model';
 import { getErrorMessage } from '@/utils/common';
 import { useContract } from '@/hooks/useContract';
 import { CONTRACT_ADDRESS } from '@/constant/web3';
+import priceFeedAbi from '@/abi/priceFeed.json';
 import sentryAbi from '@/abi/sentry.json';
 import bep20Abi from '@/abi/bep20.json';
 import { JsonRpcProvider, Contract, ethers } from 'ethers';
 import { coreNetwork } from '@/constant/network';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
-
+import { PriceFeedData } from '@/types';
+import { bigint } from 'zod';
 
 type Props = {
   coreApr: {
@@ -31,6 +33,7 @@ type Props = {
   vBtcBalance: bigint;
   coreBalance: bigint;
   coredaoValidators: SearchCandidateCoreDao['data']['records'];
+  priceFeedData: PriceFeedData;
 };
 
 const defaultValues: Props = {
@@ -47,6 +50,11 @@ const defaultValues: Props = {
   coreBalance: BigInt(0),
   validators: [],
   coredaoValidators: [],
+  priceFeedData: {
+    decimal: 0,
+    price: BigInt(0),
+    timestamp: BigInt(0),
+  },
 };
 
 const DashboardContext = createContext(defaultValues);
@@ -54,8 +62,12 @@ const DashboardContext = createContext(defaultValues);
 export const DashboardProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [vBtcBalance, setvBtcBalance] = useState<Props['vBtcBalance']>(defaultValues.vBtcBalance);
-  const [coreBalance, setCoreBalance] = useState<Props['coreBalance']>(defaultValues.coreBalance);
+  const [vBtcBalance, setvBtcBalance] = useState<Props['vBtcBalance']>(
+    defaultValues.vBtcBalance,
+  );
+  const [coreBalance, setCoreBalance] = useState<Props['coreBalance']>(
+    defaultValues.coreBalance,
+  );
   const [coreApr, setCoreApr] = useState<Props['coreApr']>(
     defaultValues.coreApr,
   );
@@ -65,8 +77,10 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
   const [validators, setValidators] = useState<Props['validators']>(
     defaultValues.validators,
   );
-  
-  const {address} = useOkxWalletContext()
+  const [priceFeedData, setPriceFeedData] = useState<Props['priceFeedData']>(
+    defaultValues.priceFeedData,
+  );
+  const { address } = useOkxWalletContext();
 
   const [coredaoValidators, setCoredaoValidators] = useState<
     Props['coredaoValidators']
@@ -77,7 +91,7 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
     new JsonRpcProvider('https://rpc.test.btcs.network'),
     null,
   ) as Contract;
-  
+
   const vBtcContract = useContract(
     CONTRACT_ADDRESS.stakeX3Btc,
     bep20Abi,
@@ -85,18 +99,39 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
     null,
   ) as ethers.Contract;
 
+  const priceFeedContract = useContract(
+    CONTRACT_ADDRESS.priceFeed,
+    priceFeedAbi,
+    new JsonRpcProvider('https://rpc.test.btcs.network'),
+    null,
+  ) as Contract;
+
+  const getPriceFeed = async () => {
+    try {
+      const priceFeed = await priceFeedContract.getLastData();
+      setPriceFeedData({
+        price: priceFeed[0],
+        decimal: Number(priceFeed[1]),
+        timestamp: priceFeed[2],
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const getCoreBalance = async () => {
     try {
-      const coreProvider = new ethers.JsonRpcProvider(coreNetwork.rpcUrl)
+      if (!address) return;
+      const coreProvider = new ethers.JsonRpcProvider(coreNetwork.rpcUrl);
       const coreBalance = await coreProvider.getBalance(address);
       setCoreBalance(coreBalance);
     } catch (error) {
       console.error(error);
     }
   };
-
   const getVbtcBalance = async () => {
     try {
+      if (!address) return;
       const balance = await vBtcContract.balanceOf(address);
       setvBtcBalance(balance);
     } catch (error) {
@@ -105,28 +140,52 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
   };
 
   useEffect(() => {
-    getCoreBalance()
-    getVbtcBalance()
-  }, [address])
+    getCoreBalance();
+    getVbtcBalance();
+  }, [address]);
 
   useEffect(() => {
-    const getApr = async () => {
+    const getCoreTestnetValidator = async () => {
       try {
-        const res = await fetch('/api/staking/search_candidate_page', {
-          method: 'POST',
-          body: JSON.stringify({ pageNum: 1, pageSize: 30 }),
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+        const testnetRes = await fetch(
+          '/api-test/staking/search_candidate_page',
+          {
+            method: 'POST',
+            body: JSON.stringify({ pageNum: 1, pageSize: 30 }),
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
           },
-        });
-        if (res.status !== 200) {
-        }
-        const data = (await res.json()) as SearchCandidateCoreDao;
+        );
+        const data = (await testnetRes.json()) as SearchCandidateCoreDao;
         const activeRecords = data.data.records.filter(
           (record) => record.active,
         );
         setCoredaoValidators(activeRecords);
+      } catch (error) {
+        console.error(error);
+        toast.error('Get apr from coredao failed');
+      }
+    };
+
+    const getApr = async () => {
+      try {
+        const mainnetRes = await fetch(
+          '/api-main/staking/search_candidate_page',
+          {
+            method: 'POST',
+            body: JSON.stringify({ pageNum: 1, pageSize: 30 }),
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          },
+        );
+        const data = (await mainnetRes.json()) as SearchCandidateCoreDao;
+        const activeRecords = data.data.records.filter(
+          (record) => record.active,
+        );
         const aprSorted = activeRecords
           .sort((a, b) => Number(b.apr) - Number(a.apr))
           .map((el) => el['btcStakeApr']);
@@ -145,19 +204,24 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
         if (res.status === 200) {
           const data = (await res.json()) as Dashboard;
           setMetrics(data.metrics);
-          setValidators(data.validators);
           const map: Record<string, Validator> = {};
           data.validators.forEach((item) => {
-            map[item['validatorAddress']] = item;
+            map[item['validatorAddress'].toLowerCase()] = item;
           });
           const allSentries = await sentryContract.getAllOperators();
           const validators = allSentries[0].map((el: any) => {
-            const coreAmount = map[el.contractAddress] ? map[el.contractAddress]['coreAmount'] : '0';
-            const btcAmount = map[el.contractAddress] ?  map[el.contractAddress]['btcAmount'] : '0';
-            const delegatorsCount =
-            map[el.contractAddress] ? map[el.contractAddress]['delegatorsCount'] : 0;
+            const validatorAddress = el.contractAddress.toLowerCase()
+            const coreAmount = map[validatorAddress]
+              ? map[validatorAddress]['coreAmount']
+              : '0';
+            const btcAmount = map[validatorAddress]
+              ? map[validatorAddress]['btcAmount']
+              : '0';
+            const delegatorsCount = map[validatorAddress]
+              ? map[validatorAddress]['delegatorsCount']
+              : 0;
             return {
-              validatorAddress: el.contractAddress,
+              validatorAddress: el.contractAddress.toLowerCase(),
               coreAmount,
               delegatorsCount,
               btcAmount,
@@ -174,9 +238,9 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
     };
     getApr();
     getMetrics();
-    
+    getPriceFeed();
+    getCoreTestnetValidator();
   }, []);
-
   const value = useMemo(() => {
     return {
       coreApr,
@@ -184,7 +248,8 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
       validators,
       coredaoValidators,
       coreBalance,
-      vBtcBalance
+      vBtcBalance,
+      priceFeedData,
     };
   }, [coreApr, metrics, validators, coredaoValidators]);
 

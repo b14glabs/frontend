@@ -37,11 +37,6 @@ import { shortenString } from '@/utils/string';
 import { SelectTxLock } from '@/components/stakeDrawer/select-tx';
 import { SelectCoreValidator } from '@/components/stakeDrawer/select-core-validator';
 import { Record, SearchCandidateCoreDao } from '@/types/coredao';
-export type PriceFeedData = {
-  price: string;
-  decimal: number;
-  timestamp: string;
-};
 
 export const formatBalance = (balance: string, decimal = 18) =>
   ethers.formatUnits(balance, decimal);
@@ -51,23 +46,10 @@ const coreProvider = new ethers.JsonRpcProvider(coreNetwork.rpcUrl);
 export default function StakeDrawer() {
   const { account, provider, address, connect, evmProvider, signer, chainId } =
     useOkxWalletContext();
-  const { coredaoValidators, coreBalance, vBtcBalance } = useDashboardContext();
+  const { coredaoValidators, coreBalance, vBtcBalance, priceFeedData } =
+    useDashboardContext();
   const { validatorAddress } = useValidatorContext();
 
-
-
-  const vBtcContract = useContract(
-    CONTRACT_ADDRESS.stakeX3Btc,
-    bep20Abi,
-    evmProvider,
-    signer,
-  ) as ethers.Contract;
-  const priceFeedContract = useContract(
-    CONTRACT_ADDRESS.priceFeed,
-    priceFeedAbi,
-    evmProvider,
-    signer,
-  ) as ethers.Contract;
   const pledgeAgentContract = useContract(
     CONTRACT_ADDRESS.pledgeAgent,
     pledgeAgentAbi,
@@ -85,12 +67,10 @@ export default function StakeDrawer() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [btcTx, setBtcTx] = useState<DelegateHistory>();
-  const [priceFeedData, setPriceFeedData] = useState<PriceFeedData>();
   const [loadingGenerateMock, setLoadingGenerateMock] = useState(false);
   const [forceUpdateHistory, setForceUpdateHistory] = useState(false);
   const [step, setStep] = useState(1);
-  const [coreValidator, setCoreValidator] = useState<Record | undefined>()
-  
+  const [coreValidator, setCoreValidator] = useState<Record | undefined>();
 
   const {
     modalStatus,
@@ -102,31 +82,6 @@ export default function StakeDrawer() {
     setModalHash,
     modalHash,
   } = useModal();
-
-  const getData = async () => {
-    getPriceFeed();
-  };
-
-  const getPriceFeed = async () => {
-    try {
-      const priceFeed = await priceFeedContract.getLastData();
-      console.log("price feed", priceFeed)
-      setPriceFeedData({
-        price: priceFeed[0].toString(),
-        decimal: Number(priceFeed[1]),
-        timestamp: priceFeed[2].toString(),
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    if (!open || !validatorAddress) return;
-    if (account && address && signer && chainId === coreNetwork.chainId) {
-      getData();
-    }
-  }, [account, address, signer, chainId, open]);
 
   useEffect(() => {
     if (evmProvider) switchOrCreateNetwork(chainId);
@@ -199,10 +154,11 @@ export default function StakeDrawer() {
         (
           parseInt(btcTxValue.toString()) *
           3 *
-          Number(Web3.utils.fromWei(priceFeedData?.price as string, 'ether'))
+          Number(ethers.formatUnits(priceFeedData?.price.toString(), 18))
         ).toString(),
         9,
       );
+
       const coreBalance = await coreProvider.getBalance(address);
       if (coreBalance < amountCoreRequired) {
         setModalTitle('Not enough CORE balance');
@@ -229,7 +185,6 @@ export default function StakeDrawer() {
       });
       setModalStatus('SUCCESS');
       setModalTitle('Done.');
-      getData();
     } catch (error: any) {
       console.error('Restake error', error);
       if (error.code === 'ACTION_REJECTED') {
@@ -247,26 +202,26 @@ export default function StakeDrawer() {
   };
 
   const handleButton = () => {
-    switch (step){
+    switch (step) {
       case 1:
-        setStep(2)
+        setStep(2);
         break;
       case 2:
-        restake()
+        restake();
     }
-  }
+  };
 
   const backBtn = () => {
-    if(step === 2){
-      setStep(1)
+    if (step === 2) {
+      setStep(1);
     }
-  }
+  };
 
   const buttonSubmitDisable = () => {
-    if(step === 1 && !btcTx) return true;
-    if(step === 2 && !coreValidator) return true
-    return false
-  }
+    if (step === 1 && !btcTx) return true;
+    if (step === 2 && !coreValidator) return true;
+    return false;
+  };
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild onClick={clearBtcTx}>
@@ -289,11 +244,16 @@ export default function StakeDrawer() {
               forceUpdateHistory={forceUpdateHistory}
               generate={generate}
               loadingGenerateMock={loadingGenerateMock}
-              priceFeedData={priceFeedData as PriceFeedData}
+              priceFeedData={priceFeedData}
               setBtcTx={setBtcTx}
             />
           )}
-          {step === 2 && <SelectCoreValidator setCoreValidator={setCoreValidator} coreValidator={coreValidator}/>}
+          {step === 2 && (
+            <SelectCoreValidator
+              setCoreValidator={setCoreValidator}
+              coreValidator={coreValidator}
+            />
+          )}
           <DrawerFooter>
             {/* <Button
               disabled={!!!btcTx?.bitcoinTxId || loading}
@@ -302,17 +262,23 @@ export default function StakeDrawer() {
               {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
               Submit
             </Button> */}
-            <div className='grid grid-cols-2 gap-6'>
-            <Button onClick={backBtn} variant={'outline'} className='border-neutral-500' disabled={step === 1}>
-              Back
-            </Button>
-            <Button onClick={handleButton} disabled={buttonSubmitDisable()}>
-              {step === 1 ? "Next (Choose core validator)" : "Submit"}
-            </Button>
-            
+            <div className="grid grid-cols-2 gap-6">
+              <Button
+                onClick={backBtn}
+                variant={'outline'}
+                className="border-neutral-500"
+                disabled={step === 1}
+              >
+                Back
+              </Button>
+              <Button onClick={handleButton} disabled={buttonSubmitDisable()}>
+                {step === 1 ? 'Next (Choose core validator)' : 'Submit'}
+              </Button>
             </div>
             <DrawerClose asChild>
-              <Button variant="outline" className='mt-3'>Cancel</Button>
+              <Button variant="outline" className="mt-3">
+                Cancel
+              </Button>
             </DrawerClose>
           </DrawerFooter>
         </div>

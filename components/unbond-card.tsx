@@ -34,7 +34,7 @@ import { useValidatorContext } from '@/provider/validator-provider';
 const option = [25, 50, 75, 100];
 
 export const UnbondCard = () => {
-  const { vBtcBalance } = useDashboardContext();
+  const { vBtcBalance, priceFeedData } = useDashboardContext();
   const { validatorAddress } = useValidatorContext();
   const { evmProvider, address, signer } = useOkxWalletContext();
 
@@ -64,12 +64,13 @@ export const UnbondCard = () => {
     evmProvider,
     signer,
   ) as Contract;
-
+  const coreAmount =
+    Number(formatUnits(priceFeedData.price, 18)) * amount * 0.3;
   const unbond = async () => {
     try {
       if (parseUnits(amount.toString(), 8) > vBtcBalance)
         return toast.error(`Max amount is ${formatUnits(vBtcBalance, 8)}`);
-
+      if (coreAmount < 1) return toast.error('Core amount unbond must greater than 1');
       setModalOpen(true);
       setModalStatus('LOADING');
       setModalHash('');
@@ -145,8 +146,8 @@ export const UnbondCard = () => {
                     onClick={() => {
                       setCurrentPercent(percent);
                       setAmount(
-                        Number(formatUnits(vBtcBalance.toString(), 10)) *
-                          percent,
+                        formatAmount(Number(formatUnits(vBtcBalance.toString(), 10)) *
+                        percent)
                       );
                     }}
                   >
@@ -154,6 +155,7 @@ export const UnbondCard = () => {
                   </div>
                 ))}
               </div>
+              <p>You will receive {formatAmount(coreAmount, 3)} Core</p>
             </div>
           </DialogHeader>
 

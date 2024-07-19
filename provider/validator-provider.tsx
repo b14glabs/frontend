@@ -2,12 +2,20 @@
 
 import restakeContractAbi from '@/abi/restake.json';
 import sentryAbi from '@/abi/sentry.json';
+import { coreNetwork } from '@/constant/network';
 import { CONTRACT_ADDRESS } from '@/constant/web3';
 import { useContract } from '@/hooks/useContract';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { RestakeHistory, RestakeHistoryWithLoading } from '@/types/model';
 import { formatAmount, getErrorMessage } from '@/utils/common';
-import { Contract, formatEther, JsonRpcProvider, parseEther } from 'ethers';
+import {
+  Contract,
+  formatEther,
+  formatUnits,
+  JsonRpcProvider,
+  parseEther,
+  parseUnits,
+} from 'ethers';
 import {
   FC,
   ReactNode,
@@ -20,22 +28,28 @@ import {
 import { toast } from 'react-toastify';
 
 type Props = {
-  delegatedCoin: string;
+  delegatedCoin: bigint;
+  coreDelegatedCoin: bigint;
   commission: string;
   validatorAddress: string;
   currentAccPerShare: number;
-  accPerShares: Array<string>;
+  accPerShares: Array<{
+    idx: number;
+    value: bigint;
+  }>;
   restakeHistories: RestakeHistoryWithLoading;
   delegatorsCount: number;
   restakeApr: string;
-  reward: string;
+  reward: bigint;
+  coreReward: bigint;
   setValidatorAddress: (address: string) => void;
   getRestakeHistory: (page: number) => void;
   getReward: () => void;
 };
 
 const defaultValues: Props = {
-  delegatedCoin: '0',
+  delegatedCoin: BigInt(0),
+  coreDelegatedCoin: BigInt(0),
   commission: '5',
   validatorAddress: '',
   currentAccPerShare: 0,
@@ -49,7 +63,8 @@ const defaultValues: Props = {
     totalCount: 0,
   },
   delegatorsCount: 0,
-  reward: '0',
+  reward: BigInt(0),
+  coreReward: BigInt(0),
   setValidatorAddress: () => {},
   getRestakeHistory: () => {},
   getReward: () => {},
@@ -63,18 +78,25 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
 }) => {
   const { address } = useOkxWalletContext();
 
-  const [delegatedCoin, setDelegatedCoin] = useState('0');
+  const [delegatedCoin, setDelegatedCoin] = useState(
+    defaultValues.delegatedCoin,
+  );
+  const [coreDelegatedCoin, setCoreDelegatedCoin] = useState(
+    defaultValues.coreDelegatedCoin,
+  );
   const [commission, setCommission] = useState('5');
   const [validatorAddress, setValidatorAddress] = useState(
     defaultValues.validatorAddress,
   );
-  const [accPerShares, setAccPerShares] = useState<Array<string>>([]);
+  const [accPerShares, setAccPerShares] = useState<Props['accPerShares']>([]);
   const [restakeApr, setRestakeApr] = useState('0');
   const [restakeHistories, setRestakeHistories] = useState<
     Props['restakeHistories']
   >(defaultValues.restakeHistories);
   const [delegatorsCount, setDelegatorsCount] = useState(0);
   const [reward, setReward] = useState(defaultValues.reward);
+  const [coreReward, setCoreReward] = useState(defaultValues.coreReward);
+
   const restakeHackthonContract = useContract(
     validatorAddress,
     restakeContractAbi,
@@ -91,7 +113,8 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
   const getData = async () => {
     try {
       getAccPerShare();
-      getTotalStake();
+      getTotalBtcStake();
+      getTotalCoreStake();
       getRestakeHistory();
       getCommission();
     } catch (error) {
@@ -100,49 +123,72 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     }
   };
 
+  useEffect(() => {
+    calApr(accPerShares.map((el) => el.value.toString()));
+  }, [accPerShares, delegatedCoin]);
   const getCommission = async () => {
     const res = await sentryContract.getAllOperators();
     const validatorList = res[0];
     validatorList.forEach((el: any) => {
       if (el[3].toLowerCase() === validatorAddress.toLowerCase()) {
-        setCommission(el[1].toString());
+        setCommission((Number(el[1]) / 100).toString());
       }
     });
   };
-  const getTotalStake = async () => {
+  const getTotalBtcStake = async () => {
     try {
       const res = await restakeHackthonContract.getPoolTotalStake(); // 0: amount, 1: prevUnlockTime
-      console.log("delegated coin :", res.amount.toString())
       setDelegatedCoin(res.amount.toString());
     } catch (error) {
       console.error(error);
     }
   };
 
+  const getTotalCoreStake = async () => {
+    try {
+      const res = await restakeHackthonContract.totalCoreStaked();
+      setCoreDelegatedCoin(res);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const getAccPerShare = async () => {
-    const round = Math.round(Date.now() / 86400000);
-    const listData = await Promise.all(
-      new Array(14).fill(0).map((_, idx) => {
-        return restakeHackthonContract.accPerShare(round - idx);
-      }),
-    );
-    const result = listData.map((el) => el.toString()).reverse();
-    console.log("acc per share", result)
-    setAccPerShares(result);
-    await calApr(result);
+    const provider = new JsonRpcProvider(coreNetwork.rpcUrl);
+    const latestBlock = await provider.getBlock('latest');
+    // @ts-ignore
+    const round = Math.floor(latestBlock?.timestamp / 86400);
+    const indexes = new Array(TWO_WEEK_DAYS)
+      .fill(0)
+      .map((_, idx) => round - idx);
+    const listData = [];
+    for (const index of indexes) {
+      const accPerShare = (await restakeHackthonContract.accPerShare(
+        index,
+      )) as unknown as bigint;
+      listData.push({
+        value: accPerShare,
+        idx: index,
+      });
+    }
+    setAccPerShares(listData);
   };
 
   const calApr = async (accPerShares: Array<string>) => {
-    console.log("accPerShares ", accPerShares)
     if (accPerShares && accPerShares.length === TWO_WEEK_DAYS) {
-      const restakeApr =
-        (((Number(accPerShares[accPerShares.length - 2]) -
+      const rewardPerSharePerDay =
+        (Number(accPerShares[accPerShares.length - 2]) -
           Number(accPerShares[0])) /
-          13) * 100 * 365 * (1/60000)
-          ) ;
-      setRestakeApr((restakeApr / 1e8).toString());
+        14;
+      const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
+      const balanceBtcPerYear =
+        60000 * 2 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
+      
+      const restakeApr = (rewardPerSharePerYear * 100) / balanceBtcPerYear;
+      setRestakeApr(restakeApr.toString());
       return;
     }
+
     console.error('not enough data to cal apr');
   };
 
@@ -185,14 +231,23 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
 
   const getReward = async () => {
     try {
-      if (!address) return setReward('0');
+      if (!address) return setReward(BigInt(0));
       const data = await restakeHackthonContract.currentReward.staticCall(
-        "0x5249219dfd314615215931E5Db283FfCd06ea71e",
+        address,
       );
-      console.log("asd", data)
-      setReward(data.toString());
+      setReward(data);
     } catch (error) {
-      setReward('0');
+      setReward(BigInt(0));
+      console.error(error);
+    }
+  };
+  const getCoreReward = async () => {
+    try {
+      if (!address) return setCoreReward(BigInt(0));
+      const data = await restakeHackthonContract.claimCore.staticCall(address);
+      setCoreReward(data);
+    } catch (error) {
+      setCoreReward(BigInt(0));
       console.error(error);
     }
   };
@@ -205,11 +260,13 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
   useEffect(() => {
     if (!validatorAddress) return;
     getReward();
+    getCoreReward();
   }, [address, validatorAddress]);
 
   const value = useMemo(() => {
     return {
       delegatedCoin,
+      coreReward,
       commission,
       validatorAddress,
       accPerShares,
@@ -220,6 +277,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       reward,
       getReward,
       getRestakeHistory,
+      coreDelegatedCoin,
       currentAccPerShare:
         accPerShares && accPerShares.length > 1
           ? formatAmount(+accPerShares[accPerShares.length - 1])
@@ -234,6 +292,8 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     delegatorsCount,
     restakeApr,
     reward,
+    coreDelegatedCoin,
+    coreReward,
   ]);
 
   return (

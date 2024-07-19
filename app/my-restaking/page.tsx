@@ -41,7 +41,7 @@ export default function MyStakingPage() {
           <h2 className="scroll-m-20 text-3xl font-semibold">Delegator</h2>
           <h4 className="mt-4">{shortenString(address)}</h4>
         </div>
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 justify-center">
+        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 justify-center">
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center space-y-0 pb-2 justify-center">
               <CardTitle className="text-sm font-medium">
@@ -64,21 +64,6 @@ export default function MyStakingPage() {
               <div className="text-2xl font-bold">
                 {formatAmount(+btcDelegated / 1e8)} BTC
               </div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardHeader className="flex flex-row items-center space-y-0 pb-2 justify-center">
-              <CardTitle className="text-sm font-medium">Reward</CardTitle>
-            </CardHeader>
-            <CardContent className="mt-4 flex justify-center items-center gap-5">
-              <div className="font-bold">Fixed BTC </div>
-              <Button
-                onClick={claim}
-                className="rounded-lg"
-                disabled={Number(reward) === 0}
-              >
-                Claim
-              </Button>
             </CardContent>
           </Card>
         </section>

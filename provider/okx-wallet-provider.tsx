@@ -1,6 +1,7 @@
 'use client';
 
 import { btcNetwork } from '@/constant/network';
+import { Nullable } from '@/types';
 import { Okx } from '@/types/okx-wallet';
 import { BrowserProvider, JsonRpcSigner } from 'ethers';
 import {

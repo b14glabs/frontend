@@ -1,5 +1,6 @@
 
 import { btcNetwork } from '@/constant/network'
+import { Nullable } from '@/types';
 
 export namespace Okx {
   export interface Wallet {

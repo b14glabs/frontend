@@ -12,8 +12,12 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/staking/:path*',
+        source: '/api-test/staking/:path*',
         destination: 'https://stake.test.btcs.network/api/staking/:path*',
+      },
+      {
+        source: '/api-main/staking/:path*',
+        destination: 'https://stake.coredao.org/api/staking/:path*',
       },
     ];
   },

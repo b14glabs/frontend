@@ -19,7 +19,7 @@ import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { useValidatorContext } from '@/provider/validator-provider';
 import { formatAmount, getErrorMessage } from '@/utils/common';
 import { shortenString } from '@/utils/string';
-import { Contract } from 'ethers';
+import { Contract, formatUnits, parseUnits } from 'ethers';
 import { useEffect } from 'react';
 import { DelegatorIcon } from '@/components/icon/delegator-icon';
 import { UnbondCard } from '@/components/unbond-card';
@@ -28,13 +28,14 @@ export const Metric = () => {
   const { coreApr } = useDashboardContext();
   const {
     delegatedCoin,
-    currentAccPerShare,
     restakeApr,
     validatorAddress,
     delegatorsCount,
     commission,
     reward,
     getReward,
+    coreDelegatedCoin,
+    coreReward,
   } = useValidatorContext();
   const { evmProvider, address, signer, chainId, connect } =
     useOkxWalletContext();
@@ -56,7 +57,7 @@ export const Metric = () => {
     signer,
   ) as Contract;
 
-  const claim = async () => {
+  const claimB14g = async () => {
     try {
       setModalOpen(true);
       setModalStatus('LOADING');
@@ -80,15 +81,32 @@ export const Metric = () => {
     }
   };
 
-
-  const unbond = () => {
+  const claimCore = async () => {
     try {
-      
-    } catch (error) {
-      console.error(error)
+      setModalOpen(true);
+      setModalStatus('LOADING');
+      setModalHash('');
+      setModalTitle('Claim reward');
+      const tx = await restakeContract.claimCore();
+      setModalHash(tx.hash);
+      await tx.wait();
+      setModalStatus('SUCCESS');
+      setModalTitle('Done.');
+      getReward();
+    } catch (error: any) {
+      if (error.code === 'ACTION_REJECTED') {
+        setModalOpen(false);
+        setModalTitle('');
+      } else {
+        setModalStatus('ERROR');
+        setModalTitle(getErrorMessage(error));
+      }
+      console.error(error);
     }
   };
+
   return (
+    <>
     <div className="flex flex-wrap gap-4 justify-center -mx-2">
       <LoadingModal
         modalStatus={modalStatus}
@@ -97,17 +115,24 @@ export const Metric = () => {
         modalTitle={modalTitle}
         modalHash={modalHash}
       />
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Delegated Coin</CardTitle>
         </CardHeader>
         <CardContent className="mt-4">
           <div className="text-2xl font-bold">
-            {formatAmount(+delegatedCoin / 1e8)} BTC
+            {formatAmount(
+              Number(formatUnits(Number(delegatedCoin).toString(), 8)),
+            )}{' '}
+            BTC <span className="font-normal">|</span>{' '}
+            {formatAmount(
+              Number(formatUnits(Number(coreDelegatedCoin).toString(), 18)),
+            )}{' '}
+            Core
           </div>
         </CardContent>
       </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Max APR</CardTitle>
           <TooltipProvider delayDuration={300}>
@@ -148,27 +173,7 @@ export const Metric = () => {
           </div>
         </CardContent>
       </Card>
-      {/* <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Account Per Share
-          </CardTitle>
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="text-muted-foreground" size={20} />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Nothing</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </CardHeader>
-        <CardContent className="mt-4">
-          <div className="text-2xl font-bold">{currentAccPerShare}</div>
-        </CardContent>
-      </Card> */}
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Commission</CardTitle>
           <TooltipProvider delayDuration={300}>
@@ -186,7 +191,7 @@ export const Metric = () => {
           <div className="text-2xl font-bold">{commission} %</div>
         </CardContent>
       </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">BTC Delegators</CardTitle>
           <DelegatorIcon />
@@ -195,33 +200,14 @@ export const Metric = () => {
           <div className="text-2xl font-bold">{delegatorsCount}</div>
         </CardContent>
       </Card>
+    </div>
+    <h2 className="text-2xl font-bold tracking-tight">My Staking</h2>
+    <div className="flex flex-wrap gap-4 justify-center -mx-2">
       <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Operator Address
+            Your B14G reward
           </CardTitle>
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="text-muted-foreground" size={20} />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>The validator contract address</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </CardHeader>
-        <CardContent className="mt-6">
-          <div className="text-base font-bold">
-            <CopyWrapper value={validatorAddress}>
-              {shortenString(validatorAddress, 4)}
-            </CopyWrapper>
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Your reward</CardTitle>
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -235,10 +221,44 @@ export const Metric = () => {
         </CardHeader>
         <CardContent className="mt-4">
           <div className="font-bold flex justify-between items-center">
-            <p className="text-lg">{formatAmount(+reward / 1e18, 3)} B14G </p>
+            <p className="text-lg">
+              {formatAmount(Number(reward) / 1e18, 3)} B14G{' '}
+            </p>
             <Button
-              onClick={claim}
-              disabled={Number(formatAmount(+reward / 1e18, 3)) === 0}
+              onClick={claimB14g}
+              disabled={Number(formatAmount(Number(reward) / 1e18, 3)) === 0}
+            >
+              Claim
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Your Core reward
+          </CardTitle>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="text-muted-foreground" size={20} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Nothing</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardHeader>
+        <CardContent className="mt-4">
+          <div className="font-bold flex justify-between items-center">
+            <p className="text-lg">
+              {formatAmount(Number(coreReward) / 1e18, 3)} Core{' '}
+            </p>
+            <Button
+              onClick={claimCore}
+              disabled={
+                Number(formatAmount(Number(coreReward) / 1e18, 3)) === 0
+              }
             >
               Claim
             </Button>
@@ -246,6 +266,7 @@ export const Metric = () => {
         </CardContent>
       </Card>
       <UnbondCard />
-    </div>
+      </div>
+      </>
   );
 };

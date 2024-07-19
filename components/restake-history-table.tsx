@@ -28,11 +28,10 @@ export const RestakeHistoriesTable = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="">Staking Bitcoin Txn</TableHead>
             <TableHead>Restake txn</TableHead>
+            <TableHead>Staker address</TableHead>
             <TableHead>BTC Delegated</TableHead>
             <TableHead className="text-right">CORE Delegated</TableHead>
-            {/* <TableHead className="text-right">End Reward Round</TableHead> */}
             <TableHead className="text-right">Unlock Time</TableHead>
           </TableRow>
         </TableHeader>
@@ -45,19 +44,14 @@ export const RestakeHistoriesTable = ({
               <TableRow key={el.coreTxId}>
                 <TableCell className="font-medium">
                   <a
-                    href={`${mempoolUrl}/tx/${el.bitcoinTxId.slice(2)}`}
-                    target="_blank"
-                  >
-                    {shortenString(el.bitcoinTxId.slice(2))}
-                  </a>
-                </TableCell>
-                <TableCell className="font-medium">
-                  <a
                     href={`${coreNetwork.blockExplorerUrl}/tx/${el.coreTxId}`}
                     target="_blank"
                   >
                     {shortenString(el.coreTxId)}
                   </a>
+                </TableCell>
+                <TableCell className="font-medium">
+                    {shortenString(el.stakerAddress)}
                 </TableCell>
                 <TableCell>
                   <span className="font-bold">

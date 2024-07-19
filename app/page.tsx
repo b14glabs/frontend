@@ -29,7 +29,6 @@ interface Validator {
 export default function Home() {
   const { metrics, coreApr, validators } = useDashboardContext();
   const { signer } = useOkxWalletContext();
-
   const [commissionMap, setCommissionMap] = useState<{
     [key: string]: string;
   }>();
@@ -62,7 +61,7 @@ export default function Home() {
         .call()) as any;
       const map: { [key: string]: string } = {};
       allSentries[0].forEach((el: Validator) => {
-        map[el.contractAddress.toLowerCase()] = el.commission.toString();
+        map[el.contractAddress.toLowerCase()] = (Number(el.commission) / 100).toString();
       });
       setCommissionMap(map);
     } catch (error) {

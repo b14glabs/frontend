@@ -38,7 +38,6 @@ export function DelegateBtcHistories({
       setLoading(true);
       const res = await fetch(`/api/delegated-btc-history/${address}`);
       const data = (await res.json()) as DelegatedModel;
-      console.log(data)
       setHistories(data?.histories ?? []);
     } catch (error) {
       console.error(error);
@@ -56,13 +55,11 @@ export function DelegateBtcHistories({
   }, [forceUpdate]);
 
   const divRef = useRef<HTMLDivElement>(null);
-  console.log(priceFeedData)
   return (
     <div className="max-h-[300px] overflow-y-scroll" ref={divRef}>
       <Table className="relative">
         <TableHeader className="sticky top-0 bg-white">
           <TableRow>
-            <TableHead className="">Staking Bitcoin Txn</TableHead>
             <TableHead>Core Chain Txn</TableHead>
             <TableHead>BTC Delegated</TableHead>
             <TableHead className="text-right">End Reward Round</TableHead>
@@ -96,14 +93,6 @@ export function DelegateBtcHistories({
             >
               <TableCell className="font-medium">
                 <a
-                  href={`${mempoolUrl}/tx/${history.bitcoinTxId.slice(2)}`}
-                  target="_blank"
-                >
-                  {shortenString(history.bitcoinTxId.slice(2))}
-                </a>
-              </TableCell>
-              <TableCell className="font-medium">
-                <a
                   href={`${coreNetwork.blockExplorerUrl}/tx/${history.coreTxId}`}
                   target="_blank"
                 >
@@ -121,7 +110,7 @@ export function DelegateBtcHistories({
               <TableCell className="text-right">
                 <span className="font-bold">
                   {formatAmount(
-                    (parseInt(history.value.toString()) * 3 * Number(+priceFeedData?.price / 1e18)) / 1e9,
+                    (parseInt(history.value.toString()) * 3 * Number(Number(priceFeedData?.price) / 1e18)) / 1e9,
                     9,
                   )}
                 </span>{' '}
