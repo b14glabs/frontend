@@ -44,11 +44,11 @@ export const formatBalance = (balance: string, decimal = 18) =>
 const coreProvider = new ethers.JsonRpcProvider(coreNetwork.rpcUrl);
 
 export default function StakeDrawer() {
-  const { account, provider, address, connect, evmProvider, signer, chainId } =
+  const {address,  evmProvider, signer, chainId } =
     useOkxWalletContext();
-  const { coredaoValidators, coreBalance, vBtcBalance, priceFeedData } =
+  const { coreBalance, priceFeedData } =
     useDashboardContext();
-  const { validatorAddress } = useValidatorContext();
+  const { validatorAddress, getRestakeHistory, coreValidatorStakedByUserAddress } = useValidatorContext();
 
   const pledgeAgentContract = useContract(
     CONTRACT_ADDRESS.pledgeAgent,
@@ -65,7 +65,6 @@ export default function StakeDrawer() {
   ) as ethers.Contract;
 
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [btcTx, setBtcTx] = useState<DelegateHistory>();
   const [loadingGenerateMock, setLoadingGenerateMock] = useState(false);
   const [forceUpdateHistory, setForceUpdateHistory] = useState(false);
@@ -85,11 +84,11 @@ export default function StakeDrawer() {
 
   useEffect(() => {
     if (evmProvider) switchOrCreateNetwork(chainId);
-  }, [evmProvider]);
+  }, [evmProvider, address]);
 
   async function generate() {
     try {
-      switchOrCreateNetwork(chainId);
+      await switchOrCreateNetwork(chainId);
       setLoadingGenerateMock(true);
       const mockData = getRandomData();
       const btcReiceipt = {
@@ -120,10 +119,10 @@ export default function StakeDrawer() {
           'Content-type': 'application/json',
         },
       });
-      setForceUpdateHistory(true);
     } catch (error) {
       console.error(error);
     } finally {
+      setForceUpdateHistory(true);
       setLoadingGenerateMock(false);
     }
   }
@@ -135,7 +134,6 @@ export default function StakeDrawer() {
     try {
       if (!address) return toast.info('Connect wallet first');
       if (!btcTx) return toast.error('Not selected tx');
-      setLoading(true);
       setModalOpen(true);
       setModalStatus('LOADING');
       setModalTitle('');
@@ -177,14 +175,15 @@ export default function StakeDrawer() {
       );
       setModalHash(stakeTx.hash);
       await stakeTx.wait();
-      fetch('/api/new-restake', {
+      setModalStatus('SUCCESS');
+      setModalTitle('Done.');
+      await fetch('/api/new-restake', {
         method: 'POST',
         body: JSON.stringify({
           coreTxId: stakeTx.hash,
         }),
       });
-      setModalStatus('SUCCESS');
-      setModalTitle('Done.');
+      getRestakeHistory(1)
     } catch (error: any) {
       console.error('Restake error', error);
       if (error.code === 'ACTION_REJECTED') {
@@ -194,16 +193,26 @@ export default function StakeDrawer() {
         setModalStatus('ERROR');
         setModalTitle(getErrorMessage(error));
       }
-
       toast.error(error as string);
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
-  const handleButton = () => {
+  const handleButton = async () => {
     switch (step) {
       case 1:
+        const btcTxValue = btcTx ? +btcTx?.value : 0;
+        const amountCoreRequired = ethers.parseUnits(
+          (
+            parseInt(btcTxValue.toString()) *
+            3 *
+            Number(ethers.formatUnits(priceFeedData?.price.toString(), 18))
+          ).toString(),
+          9,
+        );
+        if (coreBalance < amountCoreRequired) {
+          toast.error('Not enough CORE balance');
+          return;
+        }
         setStep(2);
         break;
       case 2:
@@ -253,13 +262,6 @@ export default function StakeDrawer() {
             />
           )}
           <DrawerFooter>
-            {/* <Button
-              disabled={!!!btcTx?.bitcoinTxId || loading}
-              onClick={restake}
-            >
-              {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-              Submit
-            </Button> */}
             <div className="grid grid-cols-2 gap-6">
               <Button
                 onClick={backBtn}

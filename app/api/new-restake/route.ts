@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       log.data as string,
       log.topics?.slice(1) as string[],
     );
+    console.log("decodedLog :", decodedLog);
     const eventData: EventData = {
       txHash: decodedLog.txHash as string,
       unlockTime: decodedLog.unlockTime as bigint,

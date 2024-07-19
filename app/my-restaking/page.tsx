@@ -69,7 +69,6 @@ export default function MyStakingPage() {
         </section>
         <Tabs defaultValue="restake" className="my-6">
           <TabsList className="flex gap-6 w-max">
-            {/* <TabsTrigger value="all">All</TabsTrigger> */}
             <TabsTrigger value="restake">
               Restake ({restakeHistory.totalCount})
             </TabsTrigger>

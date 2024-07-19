@@ -36,7 +36,7 @@ export default function StakePage() {
 
   async function generate() {
     try {
-      switchOrCreateNetwork(chainId);
+      await switchOrCreateNetwork(chainId);
       const mockData = getRandomData();
       const btcReiceipt = {
         endRound: mockData.endRound,

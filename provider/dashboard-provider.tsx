@@ -21,7 +21,6 @@ import { JsonRpcProvider, Contract, ethers } from 'ethers';
 import { coreNetwork } from '@/constant/network';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { PriceFeedData } from '@/types';
-import { bigint } from 'zod';
 
 type Props = {
   coreApr: {
@@ -88,21 +87,21 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
   const sentryContract = useContract(
     CONTRACT_ADDRESS.sentry,
     sentryAbi,
-    new JsonRpcProvider('https://rpc.test.btcs.network'),
+    new JsonRpcProvider(coreNetwork.rpcUrl),
     null,
   ) as Contract;
 
   const vBtcContract = useContract(
     CONTRACT_ADDRESS.stakeX3Btc,
     bep20Abi,
-    new JsonRpcProvider('https://rpc.test.btcs.network'),
+    new JsonRpcProvider(coreNetwork.rpcUrl),
     null,
   ) as ethers.Contract;
 
   const priceFeedContract = useContract(
     CONTRACT_ADDRESS.priceFeed,
     priceFeedAbi,
-    new JsonRpcProvider('https://rpc.test.btcs.network'),
+    new JsonRpcProvider(coreNetwork.rpcUrl),
     null,
   ) as Contract;
 
@@ -251,8 +250,8 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
       vBtcBalance,
       priceFeedData,
     };
-  }, [coreApr, metrics, validators, coredaoValidators]);
-
+  }, [coreApr, metrics, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData]);
+  console.log("coreBalance dashboard", coreBalance)
   return (
     <DashboardContext.Provider value={value}>
       {children}

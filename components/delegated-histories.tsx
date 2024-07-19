@@ -50,7 +50,6 @@ export function DelegateBtcHistories({
   }, [address]);
 
   useEffect(() => {
-    // if (!forceUpdate) return;
     getHistory();
   }, [forceUpdate]);
 
@@ -63,7 +62,6 @@ export function DelegateBtcHistories({
             <TableHead>Core Chain Txn</TableHead>
             <TableHead>BTC Delegated</TableHead>
             <TableHead className="text-right">End Reward Round</TableHead>
-            {/* <TableHead className="text-right">Unlock Time</TableHead> */}
             <TableHead className="text-right">CORE Required 
             <TooltipProvider delayDuration={300}>
             <Tooltip>
@@ -106,7 +104,6 @@ export function DelegateBtcHistories({
                 BTC
               </TableCell>
               <TableCell className="text-right">{history.endRound}</TableCell>
-              {/* <TableCell className="text-right">-</TableCell> */}
               <TableCell className="text-right">
                 <span className="font-bold">
                   {formatAmount(

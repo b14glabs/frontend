@@ -23,6 +23,7 @@ import { Contract, formatUnits, parseUnits } from 'ethers';
 import { useEffect } from 'react';
 import { DelegatorIcon } from '@/components/icon/delegator-icon';
 import { UnbondCard } from '@/components/unbond-card';
+import { switchOrCreateNetwork } from '@/utils/wallet';
 
 export const Metric = () => {
   const { coreApr } = useDashboardContext();
@@ -59,6 +60,7 @@ export const Metric = () => {
 
   const claimB14g = async () => {
     try {
+      await switchOrCreateNetwork(chainId)
       setModalOpen(true);
       setModalStatus('LOADING');
       setModalHash('');
@@ -83,6 +85,7 @@ export const Metric = () => {
 
   const claimCore = async () => {
     try {
+      await switchOrCreateNetwork(chainId);
       setModalOpen(true);
       setModalStatus('LOADING');
       setModalHash('');
@@ -208,16 +211,6 @@ export const Metric = () => {
           <CardTitle className="text-sm font-medium">
             Your B14G reward
           </CardTitle>
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="text-muted-foreground" size={20} />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Nothing</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </CardHeader>
         <CardContent className="mt-4">
           <div className="font-bold flex justify-between items-center">
@@ -238,16 +231,6 @@ export const Metric = () => {
           <CardTitle className="text-sm font-medium">
             Your Core reward
           </CardTitle>
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="text-muted-foreground" size={20} />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Nothing</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </CardHeader>
         <CardContent className="mt-4">
           <div className="font-bold flex justify-between items-center">

@@ -30,13 +30,14 @@ import { cn } from '@/lib/utils';
 import { useDashboardContext } from '@/provider/dashboard-provider';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { useValidatorContext } from '@/provider/validator-provider';
+import { switchOrCreateNetwork } from '@/utils/wallet';
 
 const option = [25, 50, 75, 100];
 
 export const UnbondCard = () => {
   const { vBtcBalance, priceFeedData } = useDashboardContext();
   const { validatorAddress } = useValidatorContext();
-  const { evmProvider, address, signer } = useOkxWalletContext();
+  const { evmProvider, address, signer, chainId } = useOkxWalletContext();
 
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(0);
@@ -74,7 +75,8 @@ export const UnbondCard = () => {
       setModalOpen(true);
       setModalStatus('LOADING');
       setModalHash('');
-      setModalTitle('Unbond vBTC');
+      
+      await switchOrCreateNetwork(chainId);
       const allowance = await getAllowance();
       let tx;
       if (Number(formatUnits(allowance, 8)) < amount) {
@@ -85,8 +87,11 @@ export const UnbondCard = () => {
         );
         await tx.wait();
       }
+      setModalTitle('Unbond vBTC');
       tx = await restakeContract.unbond(parseUnits(amount.toString(), 8));
+      setModalHash(tx.hash);
       await tx.wait();
+      
       setModalStatus('SUCCESS');
       setModalTitle('Done.');
     } catch (error: any) {
@@ -175,16 +180,6 @@ export const UnbondCard = () => {
           <CardTitle className="text-sm font-medium">
             Your delegated coin
           </CardTitle>
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="text-muted-foreground" size={20} />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Nothing</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </CardHeader>
         <CardContent className="mt-4">
           <div className="font-bold flex justify-between items-center">

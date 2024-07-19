@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 
 export const Header = () => {
-  const { account, connect, address } = useOkxWalletContext();
+  const { connect, address } = useOkxWalletContext();
   useEffect(() => {
     connect();
   }, []);
@@ -25,7 +25,7 @@ export const Header = () => {
           <House size={30} />
         </Link>
         <HoverCard openDelay={200}>
-          {account ? (
+          {address ? (
             <HoverCardTrigger asChild>
               <Button variant={'default'} className="text-base">
                 {shortenString(address)}

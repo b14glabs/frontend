@@ -32,7 +32,6 @@ type Props = {
   coreDelegatedCoin: bigint;
   commission: string;
   validatorAddress: string;
-  currentAccPerShare: number;
   accPerShares: Array<{
     idx: number;
     value: bigint;
@@ -40,6 +39,7 @@ type Props = {
   restakeHistories: RestakeHistoryWithLoading;
   delegatorsCount: number;
   restakeApr: string;
+  coreValidatorStakedByUserAddress: string | undefined;
   reward: bigint;
   coreReward: bigint;
   setValidatorAddress: (address: string) => void;
@@ -52,7 +52,6 @@ const defaultValues: Props = {
   coreDelegatedCoin: BigInt(0),
   commission: '5',
   validatorAddress: '',
-  currentAccPerShare: 0,
   restakeApr: '0',
   accPerShares: [],
   restakeHistories: {
@@ -62,6 +61,7 @@ const defaultValues: Props = {
     totalPage: 1,
     totalCount: 0,
   },
+  coreValidatorStakedByUserAddress: undefined,
   delegatorsCount: 0,
   reward: BigInt(0),
   coreReward: BigInt(0),
@@ -96,19 +96,31 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
   const [delegatorsCount, setDelegatorsCount] = useState(0);
   const [reward, setReward] = useState(defaultValues.reward);
   const [coreReward, setCoreReward] = useState(defaultValues.coreReward);
+  const [coreValidatorStakedByUserAddress, setCoreValidatorStakedByUserAddress] = useState<Props['coreValidatorStakedByUserAddress']>(defaultValues.coreValidatorStakedByUserAddress)
 
   const restakeHackthonContract = useContract(
     validatorAddress,
     restakeContractAbi,
-    new JsonRpcProvider('https://rpc.test.btcs.network'),
+    new JsonRpcProvider(coreNetwork.rpcUrl),
     null,
   ) as Contract;
   const sentryContract = useContract(
     CONTRACT_ADDRESS.sentry,
     sentryAbi,
-    new JsonRpcProvider('https://rpc.test.btcs.network'),
+    new JsonRpcProvider(coreNetwork.rpcUrl),
     null,
   ) as Contract;
+
+  const getCoreValidatorStakedByUser = async () => {
+    try {
+      if(!address) return;
+      const coreValidatorStakedByUser = await restakeHackthonContract.coreValidatorStakedByUser(address)
+      setCoreValidatorStakedByUserAddress(coreValidatorStakedByUser[0] as string)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
 
   const getData = async () => {
     try {
@@ -261,6 +273,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     if (!validatorAddress) return;
     getReward();
     getCoreReward();
+    getCoreValidatorStakedByUser();
   }, [address, validatorAddress]);
 
   const value = useMemo(() => {
@@ -278,10 +291,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       getReward,
       getRestakeHistory,
       coreDelegatedCoin,
-      currentAccPerShare:
-        accPerShares && accPerShares.length > 1
-          ? formatAmount(+accPerShares[accPerShares.length - 1])
-          : 0,
+      coreValidatorStakedByUserAddress
     };
   }, [
     delegatedCoin,
@@ -294,6 +304,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     reward,
     coreDelegatedCoin,
     coreReward,
+    coreValidatorStakedByUserAddress
   ]);
 
   return (
