@@ -10,25 +10,32 @@ import {
 } from 'react';
 import { SearchCandidateCoreDao } from '@/types/coredao';
 import { toast } from 'react-toastify';
-import { Dashboard, Validator } from '@/types/model';
 import { getErrorMessage } from '@/utils/common';
 import { useContract } from '@/hooks/useContract';
 import { CONTRACT_ADDRESS } from '@/constant/web3';
 import priceFeedAbi from '@/abi/priceFeed.json';
 import sentryAbi from '@/abi/sentry.json';
 import bep20Abi from '@/abi/bep20.json';
+import restakeAbi from "@/abi/restake.json"
 import { JsonRpcProvider, Contract, ethers } from 'ethers';
 import { coreNetwork } from '@/constant/network';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { PriceFeedData } from '@/types';
+
+
+export interface Validator {
+  coreAmount: bigint
+  btcAmount: bigint
+  validatorAddress: string
+  commission: number
+}
 
 type Props = {
   coreApr: {
     max: string;
     min: string;
   };
-  metrics: Dashboard['metrics'];
-  validators: Dashboard['validators'];
+  validators: Array<Validator>;
   vBtcBalance: bigint;
   coreBalance: bigint;
   coredaoValidators: SearchCandidateCoreDao['data']['records'];
@@ -39,11 +46,6 @@ const defaultValues: Props = {
   coreApr: {
     max: '0',
     min: '0',
-  },
-  metrics: {
-    totalBtcAmount: '0',
-    totalCoreAmount: '0',
-    validatorsCount: 0,
   },
   vBtcBalance: BigInt(0),
   coreBalance: BigInt(0),
@@ -69,9 +71,6 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
   );
   const [coreApr, setCoreApr] = useState<Props['coreApr']>(
     defaultValues.coreApr,
-  );
-  const [metrics, setMetrics] = useState<Props['metrics']>(
-    defaultValues.metrics,
   );
   const [validators, setValidators] = useState<Props['validators']>(
     defaultValues.validators,
@@ -199,37 +198,29 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
     };
     const getMetrics = async () => {
       try {
-        const res = await fetch('/api/dashboard');
-        if (res.status === 200) {
-          const data = (await res.json()) as Dashboard;
-          setMetrics(data.metrics);
-          const map: Record<string, Validator> = {};
-          data.validators.forEach((item) => {
-            map[item['validatorAddress'].toLowerCase()] = item;
-          });
-          const allSentries = await sentryContract.getAllOperators();
-          const validators = allSentries[0].map((el: any) => {
-            const validatorAddress = el.contractAddress.toLowerCase()
-            const coreAmount = map[validatorAddress]
-              ? map[validatorAddress]['coreAmount']
-              : '0';
-            const btcAmount = map[validatorAddress]
-              ? map[validatorAddress]['btcAmount']
-              : '0';
-            const delegatorsCount = map[validatorAddress]
-              ? map[validatorAddress]['delegatorsCount']
-              : 0;
-            return {
-              validatorAddress: el.contractAddress.toLowerCase(),
-              coreAmount,
-              delegatorsCount,
-              btcAmount,
-            };
-          });
-          setValidators(validators);
-        } else {
-          throw `Get metrics failed with status ${res.status}`;
-        }
+        const allOperator = await sentryContract.getAllOperators();
+        const validators = [] as Array<Validator>;
+        const promises = allOperator[0].map(async (operator: {
+          commission: bigint,
+          contractAddress: string
+        }) => {
+          const {contractAddress, commission} = operator
+          const operatorAddress = contractAddress.toLowerCase();
+          const operatorContract = new Contract(operatorAddress, restakeAbi, new JsonRpcProvider(coreNetwork.rpcUrl));
+          const poolTotalStake = await operatorContract.getPoolTotalStake();
+          const totalBtcStaked = poolTotalStake[0] as bigint;
+          const totalCoreStaked = await operatorContract.totalCoreStaked();
+          return {
+            btcAmount: totalBtcStaked,
+            coreAmount: totalCoreStaked,
+            validatorAddress: operatorAddress,
+            commission: Number(commission) / 100
+          } as unknown as Validator;
+        });
+        const results = await Promise.all(promises);
+        validators.push(...results);
+        setValidators(validators);
+
       } catch (error) {
         console.error(error);
         toast.error(getErrorMessage(error));
@@ -243,15 +234,13 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
   const value = useMemo(() => {
     return {
       coreApr,
-      metrics,
       validators,
       coredaoValidators,
       coreBalance,
       vBtcBalance,
       priceFeedData,
     };
-  }, [coreApr, metrics, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData]);
-  console.log("coreBalance dashboard", coreBalance)
+  }, [coreApr, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData]);
   return (
     <DashboardContext.Provider value={value}>
       {children}

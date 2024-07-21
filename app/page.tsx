@@ -1,5 +1,4 @@
 'use client';
-import sentryAbi from '@/abi/sentry.json';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -9,39 +8,29 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { coreNetwork } from '@/constant/network';
-import { CONTRACT_ADDRESS } from '@/constant/web3';
 import { useDashboardContext } from '@/provider/dashboard-provider';
-import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { formatAmount, formatNumberWithCommas } from '@/utils/common';
 import { formatUnits } from 'ethers';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import Web3 from 'web3';
-
-interface Validator {
-  active: boolean;
-  commission: bigint;
-  contractAddress: string;
-  totalAssertion: bigint;
-}
 
 export default function Home() {
-  const { metrics, coreApr, validators } = useDashboardContext();
-  const { signer } = useOkxWalletContext();
-  const [commissionMap, setCommissionMap] = useState<{
-    [key: string]: string;
-  }>();
+  const { metrics, validators } = useDashboardContext();
+  let totalCore = BigInt(0);
+  let totalBtc = BigInt(0);
+  validators.forEach(item => {
+    totalCore += item.coreAmount;
+    totalBtc += item.btcAmount;
+  })
   const metricsCard = [
     {
       title: 'Total CORE Delegate',
       value: `${formatAmount(
-        +formatUnits(metrics?.totalCoreAmount, 'ether'),
+        +formatUnits(totalCore, 'ether'),
       )} CORE`,
     },
     {
       title: 'Total BTC Delegate',
-      value: `${formatAmount(+formatUnits(metrics?.totalBtcAmount, 8))} BTC`,
+      value: `${formatAmount(+formatUnits(totalBtc, 8))} BTC`,
     },
     {
       title: 'Validators',
@@ -49,29 +38,6 @@ export default function Home() {
     },
   ];
 
-  const getCommission = async () => {
-    try {
-      const web3 = new Web3(coreNetwork.rpcUrl);
-      const contract = new web3.eth.Contract(
-        sentryAbi,
-        CONTRACT_ADDRESS.sentry,
-      );
-      const allSentries = (await contract.methods
-        .getAllOperators()
-        .call()) as any;
-      const map: { [key: string]: string } = {};
-      allSentries[0].forEach((el: Validator) => {
-        map[el.contractAddress.toLowerCase()] = (Number(el.commission) / 100).toString();
-      });
-      setCommissionMap(map);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    getCommission();
-  }, []);
   const round = Math.round(Date.now() / 86400000);
   return (
     <>
@@ -127,8 +93,7 @@ export default function Home() {
                   </TableCell>
                   <TableCell>
                     <span className="font-bold">
-                      {commissionMap &&
-                        commissionMap[el.validatorAddress.toLowerCase()]}
+                      {el.commission}
                     </span>{' '}
                     %
                   </TableCell>

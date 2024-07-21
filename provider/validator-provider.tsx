@@ -155,7 +155,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       console.error(error);
     }
   };
-
+  
   const getTotalCoreStake = async () => {
     try {
       const res = await restakeHackthonContract.totalCoreStaked();
@@ -194,14 +194,12 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
         14;
       const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
       const balanceBtcPerYear =
-        60000 * 2 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
+        60000 * 1.3 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
       
       const restakeApr = (rewardPerSharePerYear * 100) / balanceBtcPerYear;
       setRestakeApr(restakeApr.toString());
       return;
     }
-
-    console.error('not enough data to cal apr');
   };
 
   const getRestakeHistory = async (page = 1) => {
@@ -293,19 +291,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       coreDelegatedCoin,
       coreValidatorStakedByUserAddress
     };
-  }, [
-    delegatedCoin,
-    commission,
-    validatorAddress,
-    accPerShares,
-    restakeHistories,
-    delegatorsCount,
-    restakeApr,
-    reward,
-    coreDelegatedCoin,
-    coreReward,
-    coreValidatorStakedByUserAddress
-  ]);
+  }, [delegatedCoin, coreReward, commission, validatorAddress, accPerShares, restakeHistories, delegatorsCount, restakeApr, reward, getReward, getRestakeHistory, coreDelegatedCoin, coreValidatorStakedByUserAddress]);
 
   return (
     <ValidatorContext.Provider value={value}>

@@ -90,7 +90,7 @@ export const Metric = () => {
       setModalStatus('LOADING');
       setModalHash('');
       setModalTitle('Claim reward');
-      const tx = await restakeContract.claimCore();
+      const tx = await restakeContract.claimCore(address);
       setModalHash(tx.hash);
       await tx.wait();
       setModalStatus('SUCCESS');

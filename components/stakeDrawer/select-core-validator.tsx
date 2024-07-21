@@ -21,7 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { boolean } from 'zod';
+
 export function SelectCoreValidator({
   coreValidator,
   setCoreValidator,
@@ -43,8 +43,6 @@ export function SelectCoreValidator({
       }
     });
   }, [coreValidatorStakedByUserAddress]);
-  console.log(coreValidator)
-  console.log(coreValidatorStakedByUserAddress, Boolean(coreValidatorStakedByUserAddress))
   return (
     <div className="max-h-[300px] overflow-y-scroll">
       <Table className="relative">
@@ -60,9 +58,7 @@ export function SelectCoreValidator({
             <TableRow
               key={validator.operatorAddressHash}
               onClick={() => {
-                console.log("coreValidatorStakedByUserAddress",coreValidatorStakedByUserAddress, Boolean(coreValidatorStakedByUserAddress))
                 if (coreValidatorStakedByUserAddress === "0x0000000000000000000000000000000000000000") {
-                  console.log("run")
                   setCoreValidator(validator);
                 }
               }}
