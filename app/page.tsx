@@ -14,7 +14,7 @@ import { formatUnits } from 'ethers';
 import Link from 'next/link';
 
 export default function Home() {
-  const { metrics, validators } = useDashboardContext();
+  const { validators } = useDashboardContext();
   let totalCore = BigInt(0);
   let totalBtc = BigInt(0);
   validators.forEach(item => {
