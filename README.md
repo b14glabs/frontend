@@ -2,7 +2,7 @@
 This is a frontend project that provides a user interface for interacting with a delegate platform. The application allows users to view and manage their delegate activities, including delegating to validators and tracking delegate rewards.
 
 ## Setup
-Before running the project, you need to set up a MongoDB connection. This requires setting the `MONGODB_URI` environment variable.
+Before running the project, you need to set up a MongoDB connection. This requires setting the `MONGODB_URI` environment variable. This database is used to save transaction history when generating a mock delegatedBtc event.
 
 1. Create a `.env.local` file in the root of the project.
 2. Add the following line to the `.env.local` file:
@@ -17,7 +17,7 @@ Before running the project, you need to set up a MongoDB connection. This requir
 
 ## Features
 - **Dashboard Page**: Lists all available validators and allows users to select a validator to delegate their tokens.
-- **Validator Page**: Displays delegate history, account per share charts for the last 14 blocks, total CORE and BTC stake, and provides options to delegate and claim rewards.
+- **Validator Page**: Displays delegate history, account per share charts for the last 14 days, total CORE and BTC stake, and provides options to delegate and claim rewards.
 - **My Staking Page**: Allows users to view their total staked amount, reward history, and claim rewards.
 
 ## Pages
@@ -33,7 +33,7 @@ The Validator page provides detailed information about a selected validator. Use
 - See account per share charts for the last 14 blocks.
 - Check the total CORE and BTC stake.
 - Delegate tokens to the validator.
-- Claim rewards. (Comming soon)
+- Claim rewards.
 
 ### My Staking Page
 The My Staking page allows users to manage their staking activities. Users can:
