@@ -255,6 +255,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     try {
       if (!address) return setCoreReward(BigInt(0));
       const data = await restakeHackthonContract.claimCore.staticCall(address);
+      console.log("Core reward", data)
       setCoreReward(data);
     } catch (error) {
       setCoreReward(BigInt(0));
