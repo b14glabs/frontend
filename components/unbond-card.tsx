@@ -1,7 +1,7 @@
 import { formatAmount, getErrorMessage } from '@/utils/common';
 import { Contract, formatUnits, parseUnits } from 'ethers';
 import { Info } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import vBtcAbi from '@/abi/bep20.json';
 import restakeAbi from '@/abi/restake.json';
@@ -18,12 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { LoadingModal, useModal } from '@/components/loading-modal';
 import { Input } from '@/components/ui/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+
 import { CONTRACT_ADDRESS } from '@/constant/web3';
 import { useContract } from '@/hooks/useContract';
 import { cn } from '@/lib/utils';
@@ -33,6 +28,21 @@ import { useValidatorContext } from '@/provider/validator-provider';
 import { switchOrCreateNetwork } from '@/utils/wallet';
 
 const option = [25, 50, 75, 100];
+function useDebounce(value: number, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 export const UnbondCard = () => {
   const { vBtcBalance, priceFeedData } = useDashboardContext();
@@ -42,6 +52,9 @@ export const UnbondCard = () => {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(0);
   const [currentPercent, setCurrentPercent] = useState(0);
+  const [coreAmount, setCoreAmount] = useState(BigInt(0))
+  const debouncedInputValue = useDebounce(amount, 500)
+
   const {
     modalStatus,
     setModalStatus,
@@ -65,13 +78,28 @@ export const UnbondCard = () => {
     evmProvider,
     signer,
   ) as Contract;
-  const coreAmount =
-    Number(formatUnits(priceFeedData.price, 18)) * amount * 0.3;
+ 
+  useEffect(() => {
+    if (debouncedInputValue) {
+      getCoreAmount()
+    }
+  }, [debouncedInputValue]);
+
+  const getCoreAmount = async () => {
+    try {
+      if(!address) return setCoreAmount(BigInt(0));
+      const unbondCoreAmount = await restakeContract.calUnbondCoreAmount.staticCall(parseUnits(amount.toString(), 8), address)
+      setCoreAmount(unbondCoreAmount[0])
+    } catch (error) {
+      console.error(error)
+      setCoreAmount(BigInt(0));
+    }
+  }
   const unbond = async () => {
     try {
       if (parseUnits(amount.toString(), 8) > vBtcBalance)
         return toast.error(`Max amount is ${formatUnits(vBtcBalance, 8)}`);
-      if (coreAmount < 1) return toast.error('Core amount unbond must greater than 1');
+      if (coreAmount < parseUnits("1", 18)) return toast.error('Core amount unbond must greater than 1');
       setModalOpen(true);
       setModalStatus('LOADING');
       setModalHash('');
@@ -160,7 +188,7 @@ export const UnbondCard = () => {
                   </div>
                 ))}
               </div>
-              <p>You will receive {formatAmount(coreAmount, 3)} Core</p>
+              <p>You will receive {formatAmount(+formatUnits(coreAmount, 18))} Core</p>
             </div>
           </DialogHeader>
 

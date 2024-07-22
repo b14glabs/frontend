@@ -4,22 +4,15 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { ReloadIcon } from '@radix-ui/react-icons';
 import * as ethers from 'ethers';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-import bep20Abi from '@/abi/bep20.json';
 import pledgeAgentAbi from '@/abi/pledgeAgent.json';
-import priceFeedAbi from '@/abi/priceFeed.json';
 import restakeHackathonAbi from '@/abi/restake.json';
-import { DelegateBtcHistories } from '@/components/delegated-histories';
 import { CONTRACT_ADDRESS } from '@/constant/web3';
 import { useContract } from '@/hooks/useContract';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
@@ -29,14 +22,13 @@ import { LoadingModal, useModal } from '@/components/loading-modal';
 import { getRandomData } from '@/constant/data';
 import { coreNetwork } from '@/constant/network';
 import { useValidatorContext } from '@/provider/validator-provider';
-import { formatAmount, getErrorMessage } from '@/utils/common';
+import { getErrorMessage } from '@/utils/common';
 import { switchOrCreateNetwork } from '@/utils/wallet';
 import Web3 from 'web3';
 import { useDashboardContext } from '@/provider/dashboard-provider';
-import { shortenString } from '@/utils/string';
 import { SelectTxLock } from '@/components/stakeDrawer/select-tx';
 import { SelectCoreValidator } from '@/components/stakeDrawer/select-core-validator';
-import { Record, SearchCandidateCoreDao } from '@/types/coredao';
+import { Record } from '@/types/coredao';
 
 export const formatBalance = (balance: string, decimal = 18) =>
   ethers.formatUnits(balance, decimal);
@@ -48,7 +40,7 @@ export default function StakeDrawer() {
     useOkxWalletContext();
   const { coreBalance, priceFeedData } =
     useDashboardContext();
-  const { validatorAddress, getRestakeHistory, coreValidatorStakedByUserAddress } = useValidatorContext();
+  const { validatorAddress, getRestakeHistory } = useValidatorContext();
 
   const pledgeAgentContract = useContract(
     CONTRACT_ADDRESS.pledgeAgent,
@@ -122,6 +114,7 @@ export default function StakeDrawer() {
     } catch (error) {
       console.error(error);
     } finally {
+      getRestakeHistory(1)
       setForceUpdateHistory(true);
       setLoadingGenerateMock(false);
     }
