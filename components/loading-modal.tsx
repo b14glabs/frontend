@@ -34,12 +34,14 @@ export function LoadingModal({
   setModalOpen,
   modalTitle = '',
   modalHash = '',
+  closeParentModal
 }: {
   modalStatus: STATUS;
   modalOpen: boolean;
   setModalOpen: (value: boolean) => void;
   modalTitle: string;
   modalHash: string;
+  closeParentModal?: () => void
 }) {
   return (
     <AlertDialog open={modalOpen} onOpenChange={setModalOpen}>
@@ -48,7 +50,12 @@ export function LoadingModal({
           {!['LOADING', 'APPROVING'].includes(modalStatus) && (
             <X
               className="absolute right-4 top-4 cursor-pointer"
-              onClick={() => setModalOpen(false)}
+              onClick={() => {
+                setModalOpen(false);
+                if(closeParentModal){
+                  closeParentModal()
+                }
+              }}
             />
           )}
           <AlertDialogTitle className="text-center">

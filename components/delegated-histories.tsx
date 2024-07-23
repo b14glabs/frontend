@@ -12,7 +12,7 @@ import { coreNetwork, mempoolUrl } from '@/constant/network';
 import { cn } from '@/lib/utils';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { DelegatedModel, DelegateHistory } from '@/types/model';
-import { formatAmount } from '@/utils/common';
+import { convertRoundToDate, formatAmount } from '@/utils/common';
 import { shortenString } from '@/utils/string';
 import { Info } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -103,7 +103,7 @@ export function DelegateBtcHistories({
                 </span>{' '}
                 BTC
               </TableCell>
-              <TableCell className="text-right">{history.endRound}</TableCell>
+              <TableCell className="text-right">{convertRoundToDate(history.endRound)}</TableCell>
               <TableCell className="text-right">
                 <span className="font-bold">
                   {formatAmount(

@@ -30,3 +30,15 @@ export function errorResponse() {
     status: 500,
   });
 }
+
+
+export const convertRoundToDate = (round: string) => {
+  const date = new Date(Number(round) * 1000 * 86400);
+  // Format the date as desired
+  const formattedDate = date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  return formattedDate
+}

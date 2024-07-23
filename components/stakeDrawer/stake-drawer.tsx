@@ -38,9 +38,9 @@ const coreProvider = new ethers.JsonRpcProvider(coreNetwork.rpcUrl);
 export default function StakeDrawer() {
   const {address,  evmProvider, signer, chainId } =
     useOkxWalletContext();
-  const { coreBalance, priceFeedData } =
+  const { coreBalance, priceFeedData, getCoreBalance, getVbtcBalance } =
     useDashboardContext();
-  const { validatorAddress, getRestakeHistory } = useValidatorContext();
+  const { validatorAddress, getRestakeHistory, getTotalBtcStake, getTotalCoreStake } = useValidatorContext();
 
   const pledgeAgentContract = useContract(
     CONTRACT_ADDRESS.pledgeAgent,
@@ -111,6 +111,9 @@ export default function StakeDrawer() {
           'Content-type': 'application/json',
         },
       });
+      
+      getTotalBtcStake()
+      getTotalCoreStake()
     } catch (error) {
       console.error(error);
     } finally {
@@ -176,6 +179,8 @@ export default function StakeDrawer() {
           coreTxId: stakeTx.hash,
         }),
       });
+      getCoreBalance();
+      getVbtcBalance();
       getRestakeHistory(1)
     } catch (error: any) {
       console.error('Restake error', error);
@@ -233,6 +238,7 @@ export default function StakeDrawer() {
         <LoadingModal
           modalStatus={modalStatus}
           modalOpen={modalOpen}
+          closeParentModal={() => setOpen(false)}
           setModalOpen={setModalOpen}
           modalTitle={modalTitle}
           modalHash={modalHash}

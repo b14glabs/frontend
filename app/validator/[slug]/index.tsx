@@ -32,9 +32,10 @@ export const ValidatorContent = ({
           <CircleArrowLeft /> <span className="text-sm">Back to home</span>{' '}
         </Link>
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Validator</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Observer</h2>
           <StakeDrawer />
         </div>
+        <h3 className='text-base text-muted-foreground'>Observers monitor and confirm the accuracy of each Bitcoin block stored on the Core Chain. They earn rewards for accurate confirmations and face penalties for incorrect ones.</h3>
         <div className="space-y-4">
           <Metric />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">

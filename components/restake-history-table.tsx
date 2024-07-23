@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { coreNetwork, mempoolUrl } from '@/constant/network';
 import { RestakeHistoryWithLoading } from '@/types/model';
-import { formatAmount } from '@/utils/common';
+import { convertRoundToDate, formatAmount } from '@/utils/common';
 import { shortenString } from '@/utils/string';
 
 export const RestakeHistoriesTable = ({
@@ -65,7 +65,7 @@ export const RestakeHistoriesTable = ({
                   </span>{' '}
                   CORE
                 </TableCell>
-                <TableCell className="text-right">{el.unlockTime}</TableCell>
+                <TableCell className="text-right">{convertRoundToDate(el.unlockTime)}</TableCell>
               </TableRow>
             ))}
         </TableBody>

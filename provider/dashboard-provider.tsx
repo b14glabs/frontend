@@ -40,6 +40,8 @@ type Props = {
   coreBalance: bigint;
   coredaoValidators: SearchCandidateCoreDao['data']['records'];
   priceFeedData: PriceFeedData;
+  getVbtcBalance: () => void;
+  getCoreBalance: () => void;
 };
 
 const defaultValues: Props = {
@@ -56,6 +58,8 @@ const defaultValues: Props = {
     price: BigInt(0),
     timestamp: BigInt(0),
   },
+  getVbtcBalance: () => {},
+  getCoreBalance: () => {}
 };
 
 const DashboardContext = createContext(defaultValues);
@@ -239,8 +243,10 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
       coreBalance,
       vBtcBalance,
       priceFeedData,
+      getVbtcBalance,
+      getCoreBalance
     };
-  }, [coreApr, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData]);
+  }, [coreApr, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData, getVbtcBalance, getCoreBalance]);
   return (
     <DashboardContext.Provider value={value}>
       {children}

@@ -229,13 +229,13 @@ export const Metric = () => {
       <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Your Core reward
+            Your CORE reward
           </CardTitle>
         </CardHeader>
         <CardContent className="mt-4">
           <div className="font-bold flex justify-between items-center">
             <p className="text-lg">
-              {formatAmount(Number(coreReward) / 1e18, 3)} Core{' '}
+              {formatAmount(Number(coreReward) / 1e18, 3)} CORE{' '}
             </p>
             <Button
               onClick={claimCore}

@@ -45,6 +45,8 @@ type Props = {
   setValidatorAddress: (address: string) => void;
   getRestakeHistory: (page: number) => void;
   getReward: () => void;
+  getTotalBtcStake: () => void;
+  getTotalCoreStake: () => void
 };
 
 const defaultValues: Props = {
@@ -68,6 +70,9 @@ const defaultValues: Props = {
   setValidatorAddress: () => {},
   getRestakeHistory: () => {},
   getReward: () => {},
+  getTotalBtcStake: () => {},
+  getTotalCoreStake: () => {}
+
 };
 
 const ValidatorContext = createContext(defaultValues);
@@ -255,7 +260,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     try {
       if (!address) return setCoreReward(BigInt(0));
       const data = await restakeHackthonContract.claimCore.staticCall(address);
-      console.log("Core reward", data)
+      console.log("Core reward", data, address)
       setCoreReward(data);
     } catch (error) {
       setCoreReward(BigInt(0));
@@ -290,9 +295,11 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       getReward,
       getRestakeHistory,
       coreDelegatedCoin,
-      coreValidatorStakedByUserAddress
+      coreValidatorStakedByUserAddress,
+      getTotalCoreStake,
+      getTotalBtcStake
     };
-  }, [delegatedCoin, coreReward, commission, validatorAddress, accPerShares, restakeHistories, delegatorsCount, restakeApr, reward, getReward, getRestakeHistory, coreDelegatedCoin, coreValidatorStakedByUserAddress]);
+  }, [getTotalCoreStake, getTotalBtcStake, delegatedCoin, coreReward, commission, validatorAddress, accPerShares, restakeHistories, delegatorsCount, restakeApr, reward, getReward, getRestakeHistory, coreDelegatedCoin, coreValidatorStakedByUserAddress]);
 
   return (
     <ValidatorContext.Provider value={value}>

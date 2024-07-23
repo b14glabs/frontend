@@ -23,17 +23,17 @@ export default function Home() {
   })
   const metricsCard = [
     {
-      title: 'Total CORE Delegate',
+      title: 'Total CORE Delegated',
       value: `${formatAmount(
         +formatUnits(totalCore, 'ether'),
       )} CORE`,
     },
     {
-      title: 'Total BTC Delegate',
+      title: 'Total BTC Delegated',
       value: `${formatAmount(+formatUnits(totalBtc, 8))} BTC`,
     },
     {
-      title: 'Validators',
+      title: 'Observers',
       value: validators.length,
     },
   ];
@@ -43,7 +43,7 @@ export default function Home() {
     <>
       <main className="container">
         <div className="space-y-2 text-center my-8">
-          <h2 className="scroll-m-20 text-3xl font-semibold">Validators</h2>
+          <h2 className="scroll-m-20 text-3xl font-semibold">Observers</h2>
           <p>
             <span className="text-sm">Round</span>{' '}
             <span className="font-bold">{formatNumberWithCommas(round)}</span>
@@ -67,7 +67,7 @@ export default function Home() {
           <Table className="my-6">
             <TableHeader>
               <TableRow>
-                <TableHead className="">Validator</TableHead>
+                <TableHead className="">Observer</TableHead>
                 <TableHead>Delegated CORE | BTC</TableHead>
                 <TableHead>Commission</TableHead>
               </TableRow>
@@ -76,8 +76,9 @@ export default function Home() {
               {validators.map((el, index) => (
                 <TableRow className="" key={`validator-${el.validatorAddress}`}>
                   <TableCell className="text-base font-bold">
-                    <Link href={`/validator/${el.validatorAddress}`}>
-                      Validator {index + 1}
+                    <Link href={`/validator/${el.validatorAddress}`} className='flex gap-2 items-center'>
+                      <img src={`${index + 1}.png`} className='w-8 h-8 rounded-full'/>
+                      Observer {index + 1}
                     </Link>
                   </TableCell>
                   <TableCell>

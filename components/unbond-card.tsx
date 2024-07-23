@@ -26,6 +26,7 @@ import { useDashboardContext } from '@/provider/dashboard-provider';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { useValidatorContext } from '@/provider/validator-provider';
 import { switchOrCreateNetwork } from '@/utils/wallet';
+import { ReloadIcon } from '@radix-ui/react-icons';
 
 const option = [25, 50, 75, 100];
 function useDebounce(value: number, delay: number) {
@@ -45,8 +46,8 @@ function useDebounce(value: number, delay: number) {
 }
 
 export const UnbondCard = () => {
-  const { vBtcBalance, priceFeedData } = useDashboardContext();
-  const { validatorAddress } = useValidatorContext();
+  const { vBtcBalance, getVbtcBalance } = useDashboardContext();
+  const { validatorAddress, getReward, getTotalBtcStake, getTotalCoreStake} = useValidatorContext();
   const { evmProvider, address, signer, chainId } = useOkxWalletContext();
 
   const [open, setOpen] = useState(false);
@@ -54,6 +55,7 @@ export const UnbondCard = () => {
   const [currentPercent, setCurrentPercent] = useState(0);
   const [coreAmount, setCoreAmount] = useState(BigInt(0))
   const debouncedInputValue = useDebounce(amount, 500)
+  const [loading, setLoading] = useState(false)
 
   const {
     modalStatus,
@@ -88,11 +90,14 @@ export const UnbondCard = () => {
   const getCoreAmount = async () => {
     try {
       if(!address) return setCoreAmount(BigInt(0));
+      setLoading(true)
       const unbondCoreAmount = await restakeContract.calUnbondCoreAmount.staticCall(parseUnits(amount.toString(), 8), address)
       setCoreAmount(unbondCoreAmount[0])
     } catch (error) {
       console.error(error)
       setCoreAmount(BigInt(0));
+    } finally {
+      setLoading(false)
     }
   }
   const unbond = async () => {
@@ -119,9 +124,12 @@ export const UnbondCard = () => {
       tx = await restakeContract.unbond(parseUnits(amount.toString(), 8));
       setModalHash(tx.hash);
       await tx.wait();
-      
       setModalStatus('SUCCESS');
       setModalTitle('Done.');
+      getReward()
+      getVbtcBalance()
+      getTotalCoreStake();
+      getTotalBtcStake();
     } catch (error: any) {
       if (error.code === 'ACTION_REJECTED') {
         setModalOpen(false);
@@ -141,7 +149,6 @@ export const UnbondCard = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(Number(e.target.value));
   };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <LoadingModal
@@ -150,6 +157,7 @@ export const UnbondCard = () => {
         setModalOpen={setModalOpen}
         modalTitle={modalTitle}
         modalHash={modalHash}
+        closeParentModal={() => setOpen(false)}
       />
       <DialogContent>
         <div className="mx-auto container max-h-[90vh]">
@@ -193,8 +201,8 @@ export const UnbondCard = () => {
           </DialogHeader>
 
           <DialogFooter className="mt-2">
-            <Button onClick={unbond} disabled={amount === 0}>
-              Unbond
+            <Button onClick={unbond} disabled={loading || amount === 0}>
+            {loading && <ReloadIcon className="mr-1 h-4 w-4 animate-spin" />} Unbond
             </Button>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
