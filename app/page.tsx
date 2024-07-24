@@ -12,6 +12,8 @@ import { useDashboardContext } from '@/provider/dashboard-provider';
 import { formatAmount, formatNumberWithCommas } from '@/utils/common';
 import { formatUnits } from 'ethers';
 import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 
 export default function Home() {
   const { validators } = useDashboardContext();
@@ -35,6 +37,8 @@ export default function Home() {
     {
       title: 'Observers',
       value: validators.length,
+      tooltip: "Observers monitor and confirm the accuracy of each Bitcoin block stored on the Core Chain. They earn rewards for accurate confirmations and face penalties for incorrect ones."
+
     },
   ];
 
@@ -53,8 +57,18 @@ export default function Home() {
           {metricsCard.map((metric) => (
             <Card key={metric.title}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {metric.title}
+                <CardTitle className='flex justify-between w-full'>
+                  <div className="text-sm font-medium">{metric.title}</div>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        {metric.tooltip && <Info className="text-muted-foreground" size={20} />}
+                      </TooltipTrigger>
+                      <TooltipContent className='font-medium max-w-96'>
+                        <p>{metric.tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 </CardTitle>
               </CardHeader>
               <CardContent className="mt-4">
