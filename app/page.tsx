@@ -92,8 +92,10 @@ export default function Home() {
                   <TableCell className="text-base font-bold">
                     <Link href={`/validator/${el.validatorAddress}`} className='flex gap-2 items-center'>
                       <img src={`${index + 1}.png`} className='w-8 h-8 rounded-full'/>
-                      Observer {index + 1}
-                    </Link>
+                     <p>Observer {index + 1}</p> 
+                      {el.active ? <div className='bg-[#00c8a7] text-white text-xs font-bold py-1 px-2 rounded-xl'>Active</div> : <div className='bg-[#de4437] text-white text-xs font-bold py-1 px-2 rounded-xl'>Inactive</div>}
+                      </Link>
+                    
                   </TableCell>
                   <TableCell>
                     <span className="text-base font-bold">

@@ -28,6 +28,7 @@ export interface Validator {
   btcAmount: bigint
   validatorAddress: string
   commission: number
+  active: boolean
 }
 
 type Props = {
@@ -207,8 +208,9 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
         const promises = allOperator[0].map(async (operator: {
           commission: bigint,
           contractAddress: string
+          active: boolean
         }) => {
-          const {contractAddress, commission} = operator
+          const {contractAddress, commission, active} = operator
           const operatorAddress = contractAddress.toLowerCase();
           const operatorContract = new Contract(operatorAddress, restakeAbi, new JsonRpcProvider(coreNetwork.rpcUrl));
           const poolTotalStake = await operatorContract.getPoolTotalStake();
@@ -218,7 +220,8 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
             btcAmount: totalBtcStaked,
             coreAmount: totalCoreStaked,
             validatorAddress: operatorAddress,
-            commission: Number(commission) / 100
+            commission: Number(commission) / 100,
+            active
           } as unknown as Validator;
         });
         const results = await Promise.all(promises);
