@@ -199,7 +199,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
         14;
       const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
       const balanceBtcPerYear =
-        68000 * 1.3 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
+        68000 * 1.3 ; // core + btc in $
       
       const restakeApr = (rewardPerSharePerYear * 100) / balanceBtcPerYear;
       setRestakeApr(restakeApr.toString());
