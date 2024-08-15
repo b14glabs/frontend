@@ -36,20 +36,19 @@ const callRewardPerShare = (
   }
   return rewardPerShares;
 };
-const CustomTooltip = ({ active, payload, label }) => {
-  console.log(payload);
-  if (active && payload && payload.length) {
-    return (
-      <div className={'bg-white border border-amber-700 rounded p-2'}>
-        <div className={"text-sm "}>{label}, 2024</div>
-        <div className={"font-semibold text-xs"}>{payload[0].payload.rewardAmount.toFixed(5)} B14G</div>
-
-      </div>
-
-    );
-  }
-  return null;
-};
+// const CustomTooltip = ({ active, payload, label }) => {
+//   if (active && payload && payload.length) {
+//     return (
+//       <div className={'bg-white border border-amber-700 rounded p-2'}>
+//         <div className={"text-sm "}>{label}, 2024</div>
+//         <div className={"font-semibold text-xs"}>{payload[0].payload.rewardAmount.toFixed(5)} B14G</div>
+//
+//       </div>
+//
+//     );
+//   }
+//   return null;
+// };
 
 
 export function Overview() {
@@ -80,8 +79,20 @@ export function Overview() {
         </defs>
         <XAxis dataKey="Round" />
         <YAxis />
-        {/*<CartesianGrid strokeDasharray="3 3" />*/}
-        <Tooltip content={<CustomTooltip />} />
+        {/*@tsignore*/}
+        <Tooltip content={({ active, payload, label }) => {
+          if (active && payload && payload.length) {
+            return (
+              <div className={'bg-white border border-amber-700 rounded p-2'}>
+                <div className={"text-sm "}>{label}, 2024</div>
+                <div className={"font-semibold text-xs"}>{payload[0].payload.rewardAmount.toFixed(5)} B14G</div>
+
+              </div>
+
+            );
+          }
+          return null;
+        }} />
         <Area
           type="monotone"
           dataKey="rewardAmount"
