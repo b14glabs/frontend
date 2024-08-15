@@ -7,8 +7,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Restake Core',
-  description: '',
+  title: 'b14g - Unlock Yield with No-loss Bitcoin Restaking',
+  description: 'b14g enables Bitcoin holders to earn yield through no-loss restaking while providing security for PoS chains and DApps.',
 };
 
 export default function RootLayout({

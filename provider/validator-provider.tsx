@@ -160,7 +160,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       console.error(error);
     }
   };
-  
+
   const getTotalCoreStake = async () => {
     try {
       const res = await restakeHackthonContract.totalCoreStaked();
@@ -179,15 +179,16 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       .fill(0)
       .map((_, idx) => round - idx);
     const listData = [];
-    for (const index of indexes) {
-      const accPerShare = (await restakeHackthonContract.accPerShare(
-        index,
-      )) as unknown as bigint;
+    const listDataPromise = await Promise.all(indexes.map(el=>restakeHackthonContract.accPerShare(
+      el,
+    )))
+    for(let i in indexes){
       listData.push({
-        value: accPerShare,
-        idx: index,
-      });
+          value: listDataPromise[i],
+          idx: indexes[i],
+      })
     }
+    // console.log(c)
     setAccPerShares(listData);
   };
 
@@ -200,7 +201,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
       const balanceBtcPerYear =
         68000 * 1.3 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
-      
+
       const restakeApr = (rewardPerSharePerYear * 100) / balanceBtcPerYear;
       setRestakeApr(restakeApr.toString());
       return;
