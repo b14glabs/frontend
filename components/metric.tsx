@@ -215,11 +215,11 @@ export const Metric = () => {
         <CardContent className="mt-4">
           <div className="font-bold flex justify-between items-center">
             <p className="text-lg">
-              {formatAmount(Number(reward) / 1e18, 3)} B14G{' '}
+              {formatAmount(Number(reward) / 1e18, 8)} B14G{' '}
             </p>
             <Button
               onClick={claimB14g}
-              disabled={Number(formatAmount(Number(reward) / 1e18, 3)) === 0}
+              disabled={Number(formatAmount(Number(reward) / 1e18, 8)) === 0}
             >
               Claim
             </Button>
@@ -235,12 +235,12 @@ export const Metric = () => {
         <CardContent className="mt-4">
           <div className="font-bold flex justify-between items-center">
             <p className="text-lg">
-              {formatAmount(Number(coreReward) / 1e18, 3)} CORE{' '}
+              {formatAmount(Number(coreReward) / 1e18, 5)} CORE{' '}
             </p>
             <Button
               onClick={claimCore}
               disabled={
-                Number(formatAmount(Number(coreReward) / 1e18, 3)) === 0
+                Number(formatAmount(Number(coreReward) / 1e18, 5)) === 0
               }
             >
               Claim

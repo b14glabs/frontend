@@ -23,7 +23,7 @@ export const ClaimHistoriesTable = ({
         <TableHeader>
           <TableRow>
             <TableHead className="">Claim Txn</TableHead>
-            <TableHead>BTC Amount</TableHead>
+            <TableHead>Reward B14G Amount</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -43,9 +43,9 @@ export const ClaimHistoriesTable = ({
                 </TableCell>
                 <TableCell>
                   <span className="font-bold">
-                    {formatAmount(+el.btcAmount / 1e8)}
+                    {formatAmount(+el.btcAmount / 1e18,8)}
                   </span>{' '}
-                  BTC
+                  B14G
                 </TableCell>
               </TableRow>
             ))}

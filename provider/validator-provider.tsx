@@ -67,11 +67,16 @@ const defaultValues: Props = {
   delegatorsCount: 0,
   reward: BigInt(0),
   coreReward: BigInt(0),
-  setValidatorAddress: () => {},
-  getRestakeHistory: () => {},
-  getReward: () => {},
-  getTotalBtcStake: () => {},
-  getTotalCoreStake: () => {}
+  setValidatorAddress: () => {
+  },
+  getRestakeHistory: () => {
+  },
+  getReward: () => {
+  },
+  getTotalBtcStake: () => {
+  },
+  getTotalCoreStake: () => {
+  },
 
 };
 
@@ -79,8 +84,8 @@ const ValidatorContext = createContext(defaultValues);
 const TWO_WEEK_DAYS = 14;
 
 export const ValidatorProvider: FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+                                                                 children,
+                                                               }) => {
   const { address } = useOkxWalletContext();
 
   const [delegatedCoin, setDelegatedCoin] = useState(
@@ -101,7 +106,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
   const [delegatorsCount, setDelegatorsCount] = useState(0);
   const [reward, setReward] = useState(defaultValues.reward);
   const [coreReward, setCoreReward] = useState(defaultValues.coreReward);
-  const [coreValidatorStakedByUserAddress, setCoreValidatorStakedByUserAddress] = useState<Props['coreValidatorStakedByUserAddress']>(defaultValues.coreValidatorStakedByUserAddress)
+  const [coreValidatorStakedByUserAddress, setCoreValidatorStakedByUserAddress] = useState<Props['coreValidatorStakedByUserAddress']>(defaultValues.coreValidatorStakedByUserAddress);
 
   const restakeHackthonContract = useContract(
     validatorAddress,
@@ -118,13 +123,13 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
 
   const getCoreValidatorStakedByUser = async () => {
     try {
-      if(!address) return;
-      const coreValidatorStakedByUser = await restakeHackthonContract.coreValidatorStakedByUser(address)
-      setCoreValidatorStakedByUserAddress(coreValidatorStakedByUser[0] as string)
+      if (!address) return;
+      const coreValidatorStakedByUser = await restakeHackthonContract.coreValidatorStakedByUser(address);
+      setCoreValidatorStakedByUserAddress(coreValidatorStakedByUser[0] as string);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
 
   const getData = async () => {
@@ -179,14 +184,14 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       .fill(0)
       .map((_, idx) => round - idx);
     const listData = [];
-    const listDataPromise = await Promise.all(indexes.map(el=>restakeHackthonContract.accPerShare(
+    const listDataPromise = await Promise.all(indexes.map(el => restakeHackthonContract.accPerShare(
       el,
-    )))
-    for(let i in indexes){
+    )));
+    for (let i in indexes) {
       listData.push({
-          value: listDataPromise[i],
-          idx: indexes[i],
-      })
+        value: listDataPromise[i],
+        idx: indexes[i],
+      });
     }
     // console.log(c)
     setAccPerShares(listData);
@@ -250,6 +255,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       if (!address) return setReward(BigInt(0));
       const data = await restakeHackthonContract.currentReward.staticCall(
         address,
+        { from: address },
       );
       setReward(data);
     } catch (error) {
@@ -297,7 +303,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       coreDelegatedCoin,
       coreValidatorStakedByUserAddress,
       getTotalCoreStake,
-      getTotalBtcStake
+      getTotalBtcStake,
     };
   }, [getTotalCoreStake, getTotalBtcStake, delegatedCoin, coreReward, commission, validatorAddress, accPerShares, restakeHistories, delegatorsCount, restakeApr, reward, getReward, getRestakeHistory, coreDelegatedCoin, coreValidatorStakedByUserAddress]);
 
