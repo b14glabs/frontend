@@ -4052,7 +4052,9 @@ export const MOCK_DATA = [
 
 export function getRandomData() {
   let data = MOCK_DATA[Math.floor(Math.random() * MOCK_DATA.length)];
-  data.endRound = Math.round(Date.now() / 86400000) + Math.floor(Math.random() * 100) + 100
+  data.endRound = Math.round(Date.now() / 86400000) + Math.floor(Math.random() * 100) + 100;
   data.btcValue = '8000';
-  return data
+  data.btcTxId = data.btcTxId.slice(0, data.btcTxId.length - 13) + Date.now().toString();
+
+  return data;
 }
