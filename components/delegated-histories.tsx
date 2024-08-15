@@ -62,11 +62,11 @@ export function DelegateBtcHistories({
             <TableHead>Core Chain Txn</TableHead>
             <TableHead>BTC Delegated</TableHead>
             <TableHead className="text-right">End Reward Round</TableHead>
-            <TableHead className="text-right">CORE Required 
+            <TableHead className="text-right">CORE Required
             <TooltipProvider delayDuration={300}>
             <Tooltip>
             <TooltipContent>
-              
+
               <TooltipTrigger asChild>
                 <Info className="text-muted-foreground" size={20} />
               </TooltipTrigger>
@@ -79,7 +79,7 @@ export function DelegateBtcHistories({
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className={"cursor-pointer"}>
           {histories?.map((history, index) => (
             <TableRow
               key={`btc-delegated-${index}`}

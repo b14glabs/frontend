@@ -185,7 +185,7 @@ export const Metric = () => {
                 <Info className="text-muted-foreground" size={20} />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Nothing</p>
+                <p>Revenue received by a observer is split between the observer and their delegators. Commission is the part taken by the observer, which is set as a percentage.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -205,7 +205,7 @@ export const Metric = () => {
       </Card>
     </div>
     <h2 className="text-2xl font-bold tracking-tight">My Staking</h2>
-    <div className="flex flex-wrap gap-4 justify-center -mx-2">
+    <div className="flex flex-wrap gap-4 justify-center -mx-4">
       <Card className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33%-1rem)] px-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">

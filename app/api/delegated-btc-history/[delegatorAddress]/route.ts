@@ -24,6 +24,9 @@ export async function GET(
         },
       },
     );
+    if(document) {
+      document.histories = document?.histories.reverse()
+    }
     return response(document);
   } catch (error) {
     console.error(error);

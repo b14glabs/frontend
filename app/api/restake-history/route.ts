@@ -48,7 +48,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
       })
       .skip((+page - 1) * perPage)
       .limit(perPage)
-      .toArray()) as WithId<RestakeModel>[];
+      .toArray()).reverse() as WithId<RestakeModel>[];
+
     return response({
       data: result,
       page: +page,

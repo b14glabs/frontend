@@ -80,7 +80,7 @@ export const UnbondCard = () => {
     evmProvider,
     signer,
   ) as Contract;
- 
+
   useEffect(() => {
     if (debouncedInputValue) {
       getCoreAmount()
@@ -94,6 +94,9 @@ export const UnbondCard = () => {
       const unbondCoreAmount = await restakeContract.calUnbondCoreAmount.staticCall(parseUnits(amount.toString(), 8), address)
       setCoreAmount(unbondCoreAmount[0])
     } catch (error) {
+      if((error as unknown as object).toString().includes("undelegate amount is too small")){
+        toast.error('Amount unbond too small');
+      }
       console.error(error)
       setCoreAmount(BigInt(0));
     } finally {
@@ -108,7 +111,7 @@ export const UnbondCard = () => {
       setModalOpen(true);
       setModalStatus('LOADING');
       setModalHash('');
-      
+
       await switchOrCreateNetwork(chainId);
       const allowance = await getAllowance();
       let tx;
@@ -172,7 +175,7 @@ export const UnbondCard = () => {
                   onChange={handleChange}
                   type="number"
                 />{' '}
-                <span className="absolute right-3 top-[8px]">vBTC</span>
+                <span className="absolute right-8 top-[8px]">vBTC</span>
               </div>
               <div className="flex justify-end gap-2 mt-5 mb-2">
                 {option.map((percent) => (
