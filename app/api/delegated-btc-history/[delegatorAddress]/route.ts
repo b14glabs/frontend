@@ -12,9 +12,11 @@ export async function GET(
 ) {
   try {
     const db = await getMongoDb();
-    const collection = db.collection('delegated_btc');
+    const delegatedCol = db.collection('delegated_btc');
+    const restakeCol = db.collection("restake_history");
+    
     const delegatorAddress = params.delegatorAddress;
-    const document = await collection.findOne(
+    const document = await delegatedCol.findOne(
       {
         delegator: delegatorAddress.toLowerCase(),
       },
@@ -24,9 +26,26 @@ export async function GET(
         },
       },
     );
+
     if(document) {
       document.histories = document?.histories.reverse()
+      const restakeHistory = await restakeCol.find(
+        {
+          stakerAddress: delegatorAddress.toLowerCase(),
+        },
+        {
+          projection: {
+            _id: false,
+          },
+        },
+      ).toArray();
+      const hashmap : any = {}
+      restakeHistory.forEach((el: any) => {
+        hashmap[el["bitcoinTxId"]] = true
+      })
+      document.histories = document.histories.filter((el: any) => !hashmap[el["bitcoinTxId"]])
     }
+    
     return response(document);
   } catch (error) {
     console.error(error);
