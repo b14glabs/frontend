@@ -84,7 +84,6 @@ export const OkxWalletProvider: FC<{ children: ReactNode }> = ({
       setSigner(signer);
     } catch (error) {
       console.log('🚀 ~ connect ~ error:', error);
-      toast.error('Connect evm wallet failed');
     }
   }, [provider, setAccount]);
 
