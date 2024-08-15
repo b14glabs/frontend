@@ -45,6 +45,8 @@ export const ValidatorContent = ({
               </CardHeader>
               <CardContent className="pl-2">
                 <Overview />
+                <div className={'py-2 mx-auto justify-center text-center'}>Reward B14G per each BTC daily chart</div>
+
               </CardContent>
             </Card>
           </div>

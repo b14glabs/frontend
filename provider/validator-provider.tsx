@@ -182,7 +182,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     const round = Math.floor(latestBlock?.timestamp / 86400);
     const indexes = new Array(TWO_WEEK_DAYS)
       .fill(0)
-      .map((_, idx) => round - idx);
+      .map((_, idx) => round - idx-1);
     const listData = [];
     const listDataPromise = await Promise.all(indexes.map(el => restakeHackthonContract.accPerShare(
       el,

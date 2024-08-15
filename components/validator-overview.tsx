@@ -11,7 +11,9 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Legend
 } from 'recharts';
+import { round } from '@floating-ui/utils';
 
 const callRewardPerShare = (
   accPerShareDatas: Array<{
@@ -23,10 +25,10 @@ const callRewardPerShare = (
   const rewardPerShares = [];
   for (let i = 1; i < accPerShareDatasSorted.length; i++) {
     rewardPerShares.push({
-      'Amount b14g per btc':
+      rewardAmount:
         Math.max(
           Number(accPerShareDatas[i].value) -
-            Number(accPerShareDatas[i - 1].value),
+          Number(accPerShareDatas[i - 1].value),
           0,
         ) / 1e18,
       Round: accPerShareDatas[i].idx,
@@ -34,10 +36,34 @@ const callRewardPerShare = (
   }
   return rewardPerShares;
 };
+const CustomTooltip = ({ active, payload, label }) => {
+  console.log(payload);
+  if (active && payload && payload.length) {
+    return (
+      <div className={'bg-white border border-amber-700 rounded p-2'}>
+        <div className={"text-sm "}>{label}, 2024</div>
+        <div className={"font-semibold text-xs"}>{payload[0].payload.rewardAmount.toFixed(5)} B14G</div>
+
+      </div>
+
+    );
+  }
+  return null;
+};
+
 
 export function Overview() {
   const { accPerShares } = useValidatorContext();
-  const rewardPerShare = callRewardPerShare(accPerShares);
+  const rewardPerShare = callRewardPerShare(accPerShares).map(el => {
+    return {
+      ...el,
+      Round: (new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: '2-digit',
+      }).format(new Date(el.Round * 86400 * 1000))),
+    };
+  });
+
   return (
     <ResponsiveContainer width="100%" height={350}>
       <AreaChart
@@ -54,11 +80,11 @@ export function Overview() {
         </defs>
         <XAxis dataKey="Round" />
         <YAxis />
-        <CartesianGrid strokeDasharray="3 3" />
-        <Tooltip />
+        {/*<CartesianGrid strokeDasharray="3 3" />*/}
+        <Tooltip content={<CustomTooltip />} />
         <Area
           type="monotone"
-          dataKey="Amount b14g per btc"
+          dataKey="rewardAmount"
           stroke="#EA580C"
           fillOpacity={1}
           fill="url(#colorUv)"
