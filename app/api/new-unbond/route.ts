@@ -107,10 +107,10 @@ export async function POST(req: NextRequest) {
         {
           $set: {
             coreAmount: (
-              Number(coreDelegatedAmount) + Number(result.coreAmount)
+              Number(coreDelegatedAmount) - Number(result.coreAmount)
             ).toString(),
             btcAmount: (
-              Number(btcDelegatedAmount) + Number(result.btcAmount)
+              Number(btcDelegatedAmount) - Number(result.btcAmount)
             ).toString(),
           },
           // @ts-ignore
