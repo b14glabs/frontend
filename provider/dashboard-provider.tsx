@@ -246,31 +246,8 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
           (record) => record.active,
         );
         setCoredaoValidators(activeRecords);
-      } catch (error) {
-        console.error(error);
-        toast.error('Get apr from coredao failed');
-      }
-    };
-
-    const getApr = async () => {
-      try {
-        const mainnetRes = await fetch(
-          '/api-main/staking/search_candidate_page',
-          {
-            method: 'POST',
-            body: JSON.stringify({ pageNum: 1, pageSize: 30 }),
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*',
-            },
-          },
-        );
-        const data = (await mainnetRes.json()) as SearchCandidateCoreDao;
-        const activeRecords = data.data.records.filter(
-          (record) => record.active,
-        );
         const aprSorted = activeRecords
-          .sort((a, b) => Number(b.apr) - Number(a.apr))
+          .sort((a, b) => Number(b.btcStakeApr) - Number(a.btcStakeApr))
           .map((el) => el['btcStakeApr']);
         setCoreApr({
           max: aprSorted[0],
@@ -281,11 +258,42 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
         toast.error('Get apr from coredao failed');
       }
     };
-    
-    getApr();
+
+    // const getApr = async () => {
+    //   try {
+    //     const mainnetRes = await fetch(
+    //       '/api-main/staking/search_candidate_page',
+    //       {
+    //         method: 'POST',
+    //         body: JSON.stringify({ pageNum: 1, pageSize: 30 }),
+    //         headers: {
+    //           'Content-Type': 'application/json',
+    //           'Access-Control-Allow-Origin': '*',
+    //         },
+    //       },
+    //     );
+    //     const data = (await mainnetRes.json()) as SearchCandidateCoreDao;
+    //     const activeRecords = data.data.records.filter(
+    //       (record) => record.active,
+    //     );
+    //     const aprSorted = activeRecords
+    //       .sort((a, b) => Number(b.apr) - Number(a.apr))
+    //       .map((el) => el['btcStakeApr']);
+    //     setCoreApr({
+    //       max: aprSorted[0],
+    //       min: aprSorted[aprSorted.length - 1],
+    //     });
+    //   } catch (error) {
+    //     console.error(error);
+    //     toast.error('Get apr from coredao failed');
+    //   }
+    // };
+
+    // getApr();
+    getCoreTestnetValidator();
     getMetrics();
     getPriceFeed();
-    getCoreTestnetValidator();
+
   }, []);
   const value = useMemo(() => {
     return {
