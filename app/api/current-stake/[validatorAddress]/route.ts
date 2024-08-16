@@ -1,7 +1,7 @@
 import { getMongoDb } from '@/lib/db';
 import { errorResponse, response } from '@/utils/common';
 import { NextRequest } from 'next/server';
-
+export const revalidate = 0;
 export async function GET(
   req: NextRequest,
   {

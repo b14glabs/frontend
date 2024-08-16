@@ -2,7 +2,7 @@ import { getMongoDb } from '@/lib/db';
 import { Dashboard, Validator } from '@/types/model';
 import { errorResponse, response } from '@/utils/common';
 import { WithId } from 'mongodb';
-
+export const revalidate = 0;
 export async function GET() {
   try {
     const db = await getMongoDb();
