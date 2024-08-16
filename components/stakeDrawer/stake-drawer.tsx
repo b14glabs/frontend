@@ -188,6 +188,7 @@ export default function StakeDrawer() {
       getCoreBalance();
       getVbtcBalance();
       getRestakeHistory(1)
+      getCurrentStake()
     } catch (error: any) {
       console.error('Restake error', error);
       if (error.code === 'ACTION_REJECTED') {
