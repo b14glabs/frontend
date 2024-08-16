@@ -46,6 +46,7 @@ type Props = {
   priceFeedData: PriceFeedData;
   getVbtcBalance: () => void;
   getCoreBalance: () => void;
+  getMetrics: () => void;
 };
 
 const defaultValues: Props = {
@@ -65,7 +66,8 @@ const defaultValues: Props = {
     timestamp: BigInt(0),
   },
   getVbtcBalance: () => {},
-  getCoreBalance: () => {}
+  getCoreBalance: () => {},
+  getMetrics: () => {}
 };
 
 const DashboardContext = createContext(defaultValues);
@@ -154,6 +156,77 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
     getVbtcBalance();
   }, [address]);
 
+  const getMetrics = async () => {
+    try {
+      const allOperator = await sentryContract.getAllOperators();
+      const res = await fetch("/api/dashboard");
+      const data = await res.json() as {
+        metrics: {
+          totalBtcAmount: string,
+          totalCoreAmount: string,
+          validatorsCount: number
+        }
+        validators: Array<{
+          btcAmount: string,
+          coreAmount: string,
+          delegatorsCount: number,
+          validatorAddress: string
+        }>
+      };
+      setTotalCoreDelegated(BigInt(data.metrics.totalCoreAmount))
+      setTotalBtcDelegated(BigInt(data.metrics.totalBtcAmount))
+      const mapValidator: {
+        [key: string]: {
+          btcAmount: string,
+          coreAmount: string,
+        }
+      } = {}
+      data.validators.forEach(el => {
+        mapValidator[el.validatorAddress] = {
+          btcAmount: el.btcAmount,
+          coreAmount: el.coreAmount,
+        }
+      })
+      const validators = [] as Array<Validator>;
+      const promises = allOperator[0].map(async (operator: {
+        commission: bigint,
+        contractAddress: string
+        active: boolean
+      }) => {
+        const { contractAddress, commission, active } = operator;
+        const operatorAddress = contractAddress.toLowerCase();
+        const operatorContract = new Contract(operatorAddress, restakeAbi, new JsonRpcProvider(coreNetwork.rpcUrl));
+        const poolTotalStake = await operatorContract.getPoolTotalStake();
+        const totalBtcStaked = poolTotalStake[0] as bigint;
+        const totalCoreStaked = await operatorContract.totalCoreStaked();
+
+        const provider = new JsonRpcProvider(coreNetwork.rpcUrl);
+        const latestBlock = await provider.getBlock('latest');
+        // @ts-ignore
+        const round = Math.floor(latestBlock?.timestamp / 86400);
+        let listAccPerShare = await operatorContract.getAccPerShareBatch(round - 14, round);
+        const rewardPerSharePerDay = (Number(listAccPerShare[13]) - Number(listAccPerShare[0])) / 13;
+        const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
+        const balanceBtcPerYear = 57000 * Number(formatUnits(totalBtcStaked.toString(), 8)); // core + btc in $
+        return {
+          btcAmount: mapValidator[operatorAddress].btcAmount,
+          coreAmount: mapValidator[operatorAddress].coreAmount,
+          validatorAddress: operatorAddress,
+          commission: Number(commission) / 100,
+          apr: (rewardPerSharePerYear * 100) / balanceBtcPerYear,
+          active,
+        } as unknown as Validator;
+      });
+      const results = await Promise.all(promises);
+      validators.push(...results);
+      setValidators(validators);
+
+    } catch (error) {
+      console.error(error);
+      toast.error(getErrorMessage(error));
+    }
+  };
+
   useEffect(() => {
     const getCoreTestnetValidator = async () => {
       try {
@@ -208,76 +281,7 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
         toast.error('Get apr from coredao failed');
       }
     };
-    const getMetrics = async () => {
-      try {
-        const allOperator = await sentryContract.getAllOperators();
-        const res = await fetch("/api/dashboard");
-        const data = await res.json() as {
-          metrics: {
-            totalBtcAmount: string,
-            totalCoreAmount: string,
-            validatorsCount: number
-          }
-          validators: Array<{
-            btcAmount: string,
-            coreAmount: string,
-            delegatorsCount: number,
-            validatorAddress: string
-          }>
-        };
-        setTotalCoreDelegated(BigInt(data.metrics.totalCoreAmount))
-        setTotalBtcDelegated(BigInt(data.metrics.totalBtcAmount))
-        const mapValidator: {
-          [key: string]: {
-            btcAmount: string,
-            coreAmount: string,
-          }
-        } = {}
-        data.validators.forEach(el => {
-          mapValidator[el.validatorAddress] = {
-            btcAmount: el.btcAmount,
-            coreAmount: el.coreAmount,
-          }
-        })
-        const validators = [] as Array<Validator>;
-        const promises = allOperator[0].map(async (operator: {
-          commission: bigint,
-          contractAddress: string
-          active: boolean
-        }) => {
-          const { contractAddress, commission, active } = operator;
-          const operatorAddress = contractAddress.toLowerCase();
-          const operatorContract = new Contract(operatorAddress, restakeAbi, new JsonRpcProvider(coreNetwork.rpcUrl));
-          const poolTotalStake = await operatorContract.getPoolTotalStake();
-          const totalBtcStaked = poolTotalStake[0] as bigint;
-          const totalCoreStaked = await operatorContract.totalCoreStaked();
-
-          const provider = new JsonRpcProvider(coreNetwork.rpcUrl);
-          const latestBlock = await provider.getBlock('latest');
-          // @ts-ignore
-          const round = Math.floor(latestBlock?.timestamp / 86400);
-          let listAccPerShare = await operatorContract.getAccPerShareBatch(round - 14, round);
-          const rewardPerSharePerDay = (Number(listAccPerShare[13]) - Number(listAccPerShare[0])) / 13;
-          const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
-          const balanceBtcPerYear = 57000 * Number(formatUnits(totalBtcStaked.toString(), 8)); // core + btc in $
-          return {
-            btcAmount: mapValidator[operatorAddress].btcAmount,
-            coreAmount: mapValidator[operatorAddress].coreAmount,
-            validatorAddress: operatorAddress,
-            commission: Number(commission) / 100,
-            apr: (rewardPerSharePerYear * 100) / balanceBtcPerYear,
-            active,
-          } as unknown as Validator;
-        });
-        const results = await Promise.all(promises);
-        validators.push(...results);
-        setValidators(validators);
-
-      } catch (error) {
-        console.error(error);
-        toast.error(getErrorMessage(error));
-      }
-    };
+    
     getApr();
     getMetrics();
     getPriceFeed();
@@ -294,7 +298,8 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
       getVbtcBalance,
       getCoreBalance,
       totalBtcDelegated,
-      totalCoreDelegated
+      totalCoreDelegated,
+      getMetrics
     };
   }, [totalCoreDelegated, totalBtcDelegated, coreApr, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData, getVbtcBalance, getCoreBalance]);
   return (

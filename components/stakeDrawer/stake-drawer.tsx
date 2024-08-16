@@ -38,7 +38,7 @@ const coreProvider = new ethers.JsonRpcProvider(coreNetwork.rpcUrl);
 export default function StakeDrawer() {
   const {address,  evmProvider, signer, chainId } =
     useOkxWalletContext();
-  const { coreBalance, priceFeedData, getCoreBalance, getVbtcBalance } =
+  const { coreBalance, priceFeedData, getCoreBalance, getVbtcBalance, getMetrics } =
     useDashboardContext();
   const { validatorAddress, getRestakeHistory, getCurrentStake } = useValidatorContext();
 
@@ -184,6 +184,7 @@ export default function StakeDrawer() {
           coreTxId: stakeTx.hash,
         }),
       });
+      getMetrics()
       getCoreBalance();
       getVbtcBalance();
       getRestakeHistory(1)

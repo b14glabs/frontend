@@ -46,7 +46,7 @@ function useDebounce(value: number, delay: number) {
 }
 
 export const UnbondCard = () => {
-  const { vBtcBalance, getVbtcBalance } = useDashboardContext();
+  const { vBtcBalance, getVbtcBalance, getMetrics } = useDashboardContext();
   const { validatorAddress, getReward, getCurrentStake} = useValidatorContext();
   const { evmProvider, address, signer, chainId } = useOkxWalletContext();
 
@@ -140,6 +140,7 @@ export const UnbondCard = () => {
           coreTxId: tx.hash,
         }),
       });
+      getMetrics()
       setModalStatus('SUCCESS');
       setModalTitle('Done.');
       getReward()
