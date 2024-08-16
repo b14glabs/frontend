@@ -126,7 +126,7 @@ export const UnbondCard = () => {
         setModalTitle('Approve vBTC to validator');
         tx = await vBtcContract.approve(
           validatorAddress,
-          parseUnits(amount.toString(), 8),
+          parseUnits("10000", 8),
         );
         await tx.wait();
       }
