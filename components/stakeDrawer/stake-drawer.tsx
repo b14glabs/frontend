@@ -78,6 +78,12 @@ export default function StakeDrawer() {
     if (evmProvider) switchOrCreateNetwork(chainId);
   }, [evmProvider, address]);
 
+  useEffect(() => {
+    setStep(1)
+    setBtcTx(undefined)
+    setCoreValidator(undefined)
+  }, [open]);
+
   async function generate() {
     try {
       await switchOrCreateNetwork(chainId);

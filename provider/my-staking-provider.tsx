@@ -18,7 +18,6 @@ import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 type Props = {
   btcDelegated: string;
   coreDelegated: string;
-  reward: string;
   restakeHistory: RestakeHistoryWithLoading;
   claimHistory: ClaimHistoryWithLoading;
   getRestakeHistory: (page: number) => void;
@@ -29,7 +28,6 @@ type Props = {
 const defaultValues: Props = {
   btcDelegated: '0',
   coreDelegated: '0',
-  reward: '0',
   restakeHistory: {
     data: [],
     isLoading: false,
@@ -59,7 +57,6 @@ export const MyStakingProvider: FC<{ children: ReactNode }> = ({
   const [coreDelegated, setCoreDelegated] = useState(
     defaultValues.coreDelegated,
   );
-  const [reward, setReward] = useState(defaultValues.reward);
   const [restakeHistory, setRestakeHistory] = useState<Props['restakeHistory']>(
     defaultValues.restakeHistory,
   );
@@ -76,7 +73,6 @@ export const MyStakingProvider: FC<{ children: ReactNode }> = ({
         setBtcDelegated(data.data.totalBtcAmount);
       }
     } catch (error) {
-      setReward('0');
       console.error(error);
     }
   };
@@ -156,14 +152,13 @@ export const MyStakingProvider: FC<{ children: ReactNode }> = ({
     return {
       btcDelegated,
       coreDelegated,
-      reward,
       restakeHistory,
       claimHistory,
       getClaimHistory,
       getRestakeHistory,
       getTotalDelegated,
     };
-  }, [btcDelegated, coreDelegated, reward, restakeHistory, claimHistory]);
+  }, [btcDelegated, coreDelegated, restakeHistory, claimHistory]);
 
   return (
     <MyStakingContext.Provider value={value}>

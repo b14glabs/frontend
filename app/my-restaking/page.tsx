@@ -19,7 +19,6 @@ export default function MyStakingPage() {
     coreDelegated,
     claimHistory,
     restakeHistory,
-    reward,
     getRestakeHistory,
   } = useMyStakingContext();
   const { modalStatus, modalTitle, modalOpen, setModalOpen, modalHash } =
@@ -45,7 +44,7 @@ export default function MyStakingPage() {
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center space-y-0 pb-2 justify-center">
               <CardTitle className="text-sm font-medium">
-                CORE Delegated
+                Total CORE Delegated
               </CardTitle>
             </CardHeader>
             <CardContent className="mt-4">
@@ -57,7 +56,7 @@ export default function MyStakingPage() {
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center space-y-0 pb-2 justify-center">
               <CardTitle className="text-sm font-medium">
-                BTC Delegated
+                Total BTC Delegated
               </CardTitle>
             </CardHeader>
             <CardContent className="mt-4">

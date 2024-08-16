@@ -87,6 +87,13 @@ export const UnbondCard = () => {
     }
   }, [debouncedInputValue]);
 
+  useEffect(() => {
+    setAmount(0)
+    setCurrentPercent(0)
+    setCoreAmount(BigInt(0))
+    setLoading(false)
+  }, [open]);
+
   const getCoreAmount = async () => {
     try {
       if(!address) return setCoreAmount(BigInt(0));
