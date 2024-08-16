@@ -149,7 +149,7 @@ export const Metric = () => {
                   CoreDAO to the value from the validator.
                 </p>
                 <p>
-                  Max | Min core Apr:{' '}
+                  Max | Min BTC Reward Rate:{' '}
                   <span className="font-bold">
                     {formatAmount(+coreApr.max, 3)}
                   </span>{' '}
@@ -160,7 +160,7 @@ export const Metric = () => {
                   %
                 </p>
                 <p>
-                  Validator Apr:{' '}
+                  Observer Apr:{' '}
                   <span className="font-bold">
                     {formatAmount(+restakeApr, 5)}
                   </span>{' '}

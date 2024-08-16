@@ -180,12 +180,12 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     const latestBlock = await provider.getBlock('latest');
     // @ts-ignore
     const round = Math.floor(latestBlock?.timestamp / 86400);
-    let listAccPerShare = await restakeHackthonContract.getAccPerShareBatch(round - 15, round);
+    let listAccPerShare = await restakeHackthonContract.getAccPerShareBatch(round - TWO_WEEK_DAYS, round);
     const listData = [];
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < TWO_WEEK_DAYS; i++) {
       listData.push({
         value: listAccPerShare[i],
-        idx: round - 15 + i,
+        idx: round - TWO_WEEK_DAYS + i,
       });
     }
     setAccPerShares(listData);
@@ -199,7 +199,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
         14;
       const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
       const balanceBtcPerYear =
-        68000 * 1.3 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
+        57000 * 1 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
 
       const restakeApr = (rewardPerSharePerYear * 100) / balanceBtcPerYear;
       setRestakeApr(restakeApr.toString());

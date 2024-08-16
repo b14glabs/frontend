@@ -53,7 +53,7 @@ export function SelectCoreValidator({
             <TableHead className="text-right">CORE Reward Rate</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className={"cursor-pointer"}>
           {coredaoValidators.map((validator) => (
             <TableRow
               key={validator.operatorAddressHash}
@@ -90,7 +90,7 @@ export function SelectCoreValidator({
                   </Tooltip>
                 </TooltipProvider>
                 )}
-                
+
               </TableCell>
               <TableCell className="text-right font-bold">
                 {validator.commission / 10} %
