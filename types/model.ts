@@ -12,6 +12,7 @@ export interface DelegateHistory {
   script: string
   value: string
   endRound: string
+  fromCoreReal?: boolean 
 }
 // Restake histories each validator
 export interface RestakeModel {

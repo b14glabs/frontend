@@ -37,14 +37,15 @@ export function DelegateBtcHistories({
       if (!address) return;
       setLoading(true);
       const res = await fetch(`/api/delegated-btc-history/${address}`);
-      const data = (await res.json()) as DelegatedModel;
-      setHistories(data?.histories ?? []);
+      const data = (await res.json()) as DelegateHistory[];
+      setHistories(data ?? []);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     getHistory();
   }, [address]);
@@ -63,19 +64,7 @@ export function DelegateBtcHistories({
             <TableHead>BTC Delegated</TableHead>
             <TableHead className="text-right">End Reward Round</TableHead>
             <TableHead className="text-right">CORE Required
-            <TooltipProvider delayDuration={300}>
-            <Tooltip>
-            <TooltipContent>
-
-              <TooltipTrigger asChild>
-                <Info className="text-muted-foreground" size={20} />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Nothing</p>
-              </TooltipContent>
-            </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -89,13 +78,25 @@ export function DelegateBtcHistories({
                   history.bitcoinTxId === btcTx?.bitcoinTxId,
               })}
             >
-              <TableCell className="font-medium">
+              <TableCell className="font-medium flex item-center gap-1">
+              
                 <a
                   href={`${coreNetwork.blockExplorerUrl}/tx/${history.coreTxId}`}
                   target="_blank"
                 >
                   {shortenString(history.coreTxId)}
+                  
                 </a>
+                {history.fromCoreReal && <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="text-muted-foreground" size={20} />
+                      </TooltipTrigger>
+                      <TooltipContent className='font-medium max-w-96'>
+                        <p>This is real lock transaction.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>}
               </TableCell>
               <TableCell>
                 <span className="font-bold">
