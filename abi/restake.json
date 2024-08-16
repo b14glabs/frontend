@@ -897,5 +897,29 @@
   {
     "stateMutability": "payable",
     "type": "receive"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint24",
+        "name": "start",
+        "type": "uint24"
+      },
+      {
+        "internalType": "uint24",
+        "name": "end",
+        "type": "uint24"
+      }
+    ],
+    "name": "getAccPerShareBatch",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "values",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ]

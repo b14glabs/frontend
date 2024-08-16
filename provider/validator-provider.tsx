@@ -180,20 +180,14 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
     const latestBlock = await provider.getBlock('latest');
     // @ts-ignore
     const round = Math.floor(latestBlock?.timestamp / 86400);
-    const indexes = new Array(TWO_WEEK_DAYS)
-      .fill(0)
-      .map((_, idx) => round - idx-1);
+    let listAccPerShare = await restakeHackthonContract.getAccPerShareBatch(round - 15, round);
     const listData = [];
-    const listDataPromise = await Promise.all(indexes.map(el => restakeHackthonContract.accPerShare(
-      el,
-    )));
-    for (let i in indexes) {
+    for (let i = 0; i < 15; i++) {
       listData.push({
-        value: listDataPromise[i],
-        idx: indexes[i],
+        value: listAccPerShare[i],
+        idx: round - 15 + i,
       });
     }
-    // console.log(c)
     setAccPerShares(listData);
   };
 
