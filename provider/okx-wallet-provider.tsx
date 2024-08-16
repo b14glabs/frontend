@@ -74,7 +74,6 @@ export const OkxWalletProvider: FC<{ children: ReactNode }> = ({
       setAddress(addresses[0]);
     } catch (error) {
       console.log('🚀 ~ connect ~ error:', error);
-      toast.error('Connect wallet failed');
     }
     try {
       if (!window.okxwallet) return;

@@ -2,8 +2,6 @@ import { getMongoDb } from '@/lib/db';
 import { errorResponse, response } from '@/utils/common';
 import { NextRequest } from 'next/server';
 
-const perPage = 100000;
-
 export async function GET(
   req: NextRequest,
   {
@@ -24,8 +22,8 @@ export async function GET(
 
     const db = await getMongoDb();
     const restakeHistoryCol = db.collection('restake_history');
-
-    const result = await restakeHistoryCol
+    const unbondCol = db.collection('unbond_history');
+    const restakeRes = await restakeHistoryCol
       .aggregate([
         {
           $match: {
@@ -58,18 +56,64 @@ export async function GET(
         },
       ])
       .toArray();
-    if (!result.length) {
+
+      const unbondRes = await unbondCol
+      .aggregate([
+        {
+          $match: {
+            stakerAddress: delegatorAddress,
+          },
+        },
+        {
+          $addFields: {
+            coreAmountAsNumber: { $toDouble: '$coreAmount' },
+            btcAmountAsNumber: { $toDouble: '$btcAmount' },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalCoreAmount: {
+              $sum: '$coreAmountAsNumber',
+            },
+            totalBtcAmount: {
+              $sum: '$btcAmountAsNumber',
+            },
+          },
+        },
+        {
+          $project: {
+            _id: false,
+            totalCoreAmount: true,
+            totalBtcAmount: true,
+          },
+        },
+      ])
+      .toArray();
+    if (restakeRes.length === 0) {
       return response({
         data: {
           totalCoreAmount: '0',
           totalBtcAmount: '0',
         },
       });
+    } 
+    
+    if(unbondRes.length === 0) {
+      return response({
+        data: {
+          totalCoreAmount: restakeRes[0].totalCoreAmount.toString(),
+        totalBtcAmount: restakeRes[0].totalBtcAmount.toString(),
+        },
+      });
     }
+
+    const currentBtcAmount = Number(restakeRes[0].totalBtcAmount) - Number(unbondRes[0].totalBtcAmount);
+    const currentCoreAmount = Number(restakeRes[0].totalCoreAmount) - Number(unbondRes[0].totalCoreAmount);
     return response({
       data: {
-        totalCoreAmount: result[0].totalCoreAmount.toString(),
-        totalBtcAmount: result[0].totalBtcAmount.toString(),
+        totalCoreAmount: currentCoreAmount,
+        totalBtcAmount: currentBtcAmount,
       },
     });
   } catch (error) {

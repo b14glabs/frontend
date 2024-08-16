@@ -44,7 +44,7 @@ export default function MyStakingPage() {
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center space-y-0 pb-2 justify-center">
               <CardTitle className="text-sm font-medium">
-                Total CORE Delegated
+                CORE Delegated
               </CardTitle>
             </CardHeader>
             <CardContent className="mt-4">
@@ -56,7 +56,7 @@ export default function MyStakingPage() {
           <Card className="text-center">
             <CardHeader className="flex flex-row items-center space-y-0 pb-2 justify-center">
               <CardTitle className="text-sm font-medium">
-                Total BTC Delegated
+                BTC Delegated
               </CardTitle>
             </CardHeader>
             <CardContent className="mt-4">

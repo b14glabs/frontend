@@ -47,7 +47,7 @@ function useDebounce(value: number, delay: number) {
 
 export const UnbondCard = () => {
   const { vBtcBalance, getVbtcBalance } = useDashboardContext();
-  const { validatorAddress, getReward, getTotalBtcStake, getTotalCoreStake} = useValidatorContext();
+  const { validatorAddress, getReward, getCurrentStake} = useValidatorContext();
   const { evmProvider, address, signer, chainId } = useOkxWalletContext();
 
   const [open, setOpen] = useState(false);
@@ -134,12 +134,17 @@ export const UnbondCard = () => {
       tx = await restakeContract.unbond(parseUnits(amount.toString(), 8));
       setModalHash(tx.hash);
       await tx.wait();
+      await fetch('/api/new-unbond', {
+        method: 'POST',
+        body: JSON.stringify({
+          coreTxId: tx.hash,
+        }),
+      });
       setModalStatus('SUCCESS');
       setModalTitle('Done.');
       getReward()
       getVbtcBalance()
-      getTotalCoreStake();
-      getTotalBtcStake();
+      getCurrentStake()
     } catch (error: any) {
       if (error.code === 'ACTION_REJECTED') {
         setModalOpen(false);

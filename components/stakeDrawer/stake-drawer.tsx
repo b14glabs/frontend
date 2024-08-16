@@ -40,7 +40,7 @@ export default function StakeDrawer() {
     useOkxWalletContext();
   const { coreBalance, priceFeedData, getCoreBalance, getVbtcBalance } =
     useDashboardContext();
-  const { validatorAddress, getRestakeHistory, getTotalBtcStake, getTotalCoreStake } = useValidatorContext();
+  const { validatorAddress, getRestakeHistory, getCurrentStake } = useValidatorContext();
 
   const pledgeAgentContract = useContract(
     CONTRACT_ADDRESS.pledgeAgent,
@@ -118,8 +118,7 @@ export default function StakeDrawer() {
         },
       });
       
-      getTotalBtcStake()
-      getTotalCoreStake()
+      getCurrentStake()
     } catch (error) {
       console.error(error);
     } finally {
