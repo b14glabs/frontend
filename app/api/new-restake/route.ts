@@ -106,17 +106,9 @@ export async function POST(req: NextRequest) {
     const btcDelegatedAmount: string = validatorDocument
       ? validatorDocument['btcAmount']
       : '0';
-    const delegatorsCount = validatorDocument
-      ? validatorDocument['delegatorsCount']
-      : 0;
     const txHistories = validatorDocument
       ? validatorDocument['txHistories']
       : [];
-    const isNewDelegator =
-      (await restakeCol.countDocuments({
-        stakerAddress: transactionData.from,
-        validatorAddress: transactionData.to,
-      })) === 0;
     if (!txHistories.includes(transactionData.transactionHash)) {
       await validatorCol.updateOne(
         {
@@ -124,9 +116,6 @@ export async function POST(req: NextRequest) {
         },
         {
           $set: {
-            delegatorsCount: isNewDelegator
-              ? delegatorsCount + 1
-              : delegatorsCount,
             coreAmount: (
               Number(coreDelegatedAmount) + Number(result.coreAmount)
             ).toString(),

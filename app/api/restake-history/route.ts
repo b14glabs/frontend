@@ -22,18 +22,14 @@ export async function POST(req: NextRequest, res: NextResponse) {
     stakerAddress = stakerAddress ? stakerAddress.toLowerCase() : null;
     const db = await getMongoDb();
     const restakeHistoryCol = db.collection('restake_history');
-    const validatorCol = db.collection('validator');
     const page = req.nextUrl.searchParams.get('page') ?? 1;
 
-    let delegatorsCount = null;
+    
+    
     const query = {} as any;
 
     if (validatorAddress) {
       query.validatorAddress = validatorAddress;
-      const validator = await validatorCol.findOne({
-        validatorAddress,
-      });
-      delegatorsCount = validator?._id ? validator.delegatorsCount : 0;
     } else {
       query.stakerAddress = stakerAddress;
     }
@@ -50,12 +46,34 @@ export async function POST(req: NextRequest, res: NextResponse) {
       .limit(perPage)
       .toArray()).reverse() as WithId<RestakeModel>[];
 
+    if(validatorAddress) {
+      let delegatorsCount = await restakeHistoryCol.aggregate([
+        {
+          $match: { validatorAddress }
+        },
+        {
+          $group: {
+            _id: "$stakerAddress"
+          }
+        },
+        {
+          $count: "numberOfStakers"
+        }
+      ]).toArray();
+      return response({
+        data: result,
+        page: +page,
+        totalPage: +totalPage,
+        totalCount: +totalCount,
+        delegatorsCount: delegatorsCount.length ? delegatorsCount[0]['numberOfStakers'] : 0,
+      });
+    }
+
     return response({
       data: result,
       page: +page,
       totalPage: +totalPage,
       totalCount: +totalCount,
-      delegatorsCount,
     });
   } catch (error) {
     console.error(error);
