@@ -16,19 +16,20 @@ import { CONTRACT_ADDRESS } from '@/constant/web3';
 import priceFeedAbi from '@/abi/priceFeed.json';
 import sentryAbi from '@/abi/sentry.json';
 import bep20Abi from '@/abi/bep20.json';
-import restakeAbi from "@/abi/restake.json"
-import { JsonRpcProvider, Contract, ethers } from 'ethers';
+import restakeAbi from '@/abi/restake.json';
+import { JsonRpcProvider, Contract, ethers, formatUnits } from 'ethers';
 import { coreNetwork } from '@/constant/network';
 import { useOkxWalletContext } from '@/provider/okx-wallet-provider';
 import { PriceFeedData } from '@/types';
 
 
 export interface Validator {
-  coreAmount: bigint
-  btcAmount: bigint
-  validatorAddress: string
-  commission: number
-  active: boolean
+  coreAmount: bigint;
+  btcAmount: bigint;
+  validatorAddress: string;
+  apr: number;
+  commission: number;
+  active: boolean;
 }
 
 type Props = {
@@ -210,18 +211,27 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
           contractAddress: string
           active: boolean
         }) => {
-          const {contractAddress, commission, active} = operator
+          const { contractAddress, commission, active } = operator;
           const operatorAddress = contractAddress.toLowerCase();
           const operatorContract = new Contract(operatorAddress, restakeAbi, new JsonRpcProvider(coreNetwork.rpcUrl));
           const poolTotalStake = await operatorContract.getPoolTotalStake();
           const totalBtcStaked = poolTotalStake[0] as bigint;
           const totalCoreStaked = await operatorContract.totalCoreStaked();
+
+          const provider = new JsonRpcProvider(coreNetwork.rpcUrl);
+          const latestBlock = await provider.getBlock('latest');
+          const round = Math.floor(latestBlock?.timestamp / 86400);
+          let listAccPerShare = await operatorContract.getAccPerShareBatch(round - 14, round);
+          const rewardPerSharePerDay = (Number(listAccPerShare[13]) - Number(listAccPerShare[0])) / 13;
+          const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
+          const balanceBtcPerYear = 57000 * Number(formatUnits(totalBtcStaked.toString(), 8)); // core + btc in $
           return {
             btcAmount: totalBtcStaked,
             coreAmount: totalCoreStaked,
             validatorAddress: operatorAddress,
             commission: Number(commission) / 100,
-            active
+            apr: (rewardPerSharePerYear * 100) / balanceBtcPerYear,
+            active,
           } as unknown as Validator;
         });
         const results = await Promise.all(promises);
@@ -247,7 +257,7 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
       vBtcBalance,
       priceFeedData,
       getVbtcBalance,
-      getCoreBalance
+      getCoreBalance,
     };
   }, [coreApr, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData, getVbtcBalance, getCoreBalance]);
   return (

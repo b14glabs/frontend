@@ -13,7 +13,6 @@ import {
   YAxis,
   Legend
 } from 'recharts';
-import { round } from '@floating-ui/utils';
 
 const callRewardPerShare = (
   accPerShareDatas: Array<{
@@ -36,20 +35,6 @@ const callRewardPerShare = (
   }
   return rewardPerShares;
 };
-// const CustomTooltip = ({ active, payload, label }) => {
-//   if (active && payload && payload.length) {
-//     return (
-//       <div className={'bg-white border border-amber-700 rounded p-2'}>
-//         <div className={"text-sm "}>{label}, 2024</div>
-//         <div className={"font-semibold text-xs"}>{payload[0].payload.rewardAmount.toFixed(5)} B14G</div>
-//
-//       </div>
-//
-//     );
-//   }
-//   return null;
-// };
-
 
 export function Overview() {
   const { accPerShares } = useValidatorContext();

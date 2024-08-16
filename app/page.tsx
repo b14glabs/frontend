@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Info } from 'lucide-react';
 
 export default function Home() {
-  const { validators } = useDashboardContext();
+  const { validators, coreApr } = useDashboardContext();
   let totalCore = BigInt(0);
   let totalBtc = BigInt(0);
   validators.forEach(item => {
@@ -84,6 +84,7 @@ export default function Home() {
                 <TableHead className="">Observer</TableHead>
                 <TableHead>Delegated CORE | BTC</TableHead>
                 <TableHead>Commission</TableHead>
+                <TableHead>Max APR</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -92,10 +93,10 @@ export default function Home() {
                   <TableCell className="text-base font-bold">
                     <Link href={`/validator/${el.validatorAddress}`} className='flex gap-2 items-center'>
                       <img src={`${index + 1}.png`} className='w-8 h-8 rounded-full'/>
-                     <p>Observer {index + 1}</p> 
+                     <p>Observer {index + 1}</p>
                       {el.active ? <div className='bg-[#00c8a7] text-white text-xs font-bold py-1 px-2 rounded-xl'>Active</div> : <div className='bg-[#de4437] text-white text-xs font-bold py-1 px-2 rounded-xl'>Inactive</div>}
                       </Link>
-                    
+
                   </TableCell>
                   <TableCell>
                     <span className="text-base font-bold">
@@ -111,6 +112,12 @@ export default function Home() {
                   <TableCell>
                     <span className="font-bold">
                       {el.commission}
+                    </span>{' '}
+                    %
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-bold">
+                      {formatAmount( el.apr+Number(coreApr.max),3)}
                     </span>{' '}
                     %
                   </TableCell>

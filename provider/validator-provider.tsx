@@ -193,14 +193,9 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
 
   const calApr = async (accPerShares: Array<string>) => {
     if (accPerShares && accPerShares.length === TWO_WEEK_DAYS) {
-      const rewardPerSharePerDay =
-        (Number(accPerShares[accPerShares.length - 2]) -
-          Number(accPerShares[0])) /
-        14;
+      const rewardPerSharePerDay = (Number(accPerShares[accPerShares.length - 1]) - Number(accPerShares[0])) / 13;
       const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
-      const balanceBtcPerYear =
-        57000 * 1 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
-
+      const balanceBtcPerYear = 57000 * Number(formatUnits(delegatedCoin.toString(), 8)); // core + btc in $
       const restakeApr = (rewardPerSharePerYear * 100) / balanceBtcPerYear;
       setRestakeApr(restakeApr.toString());
       return;
