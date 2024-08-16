@@ -118,7 +118,13 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "amount",
+        "name": "coreAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "btcAmount",
         "type": "uint256"
       }
     ],
@@ -394,6 +400,30 @@
     "name": "delegateStakeV2Init",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint24",
+        "name": "start",
+        "type": "uint24"
+      },
+      {
+        "internalType": "uint24",
+        "name": "end",
+        "type": "uint24"
+      }
+    ],
+    "name": "getAccPerShareBatch",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "values",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

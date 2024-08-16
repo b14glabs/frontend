@@ -45,8 +45,7 @@ type Props = {
   setValidatorAddress: (address: string) => void;
   getRestakeHistory: (page: number) => void;
   getReward: () => void;
-  getTotalBtcStake: () => void;
-  getTotalCoreStake: () => void
+  getCurrentStake: () => void;
 };
 
 const defaultValues: Props = {
@@ -73,11 +72,7 @@ const defaultValues: Props = {
   },
   getReward: () => {
   },
-  getTotalBtcStake: () => {
-  },
-  getTotalCoreStake: () => {
-  },
-
+  getCurrentStake: () => {}
 };
 
 const ValidatorContext = createContext(defaultValues);
@@ -130,13 +125,31 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       console.error(error);
     }
   };
-
+ 
+  const getCurrentStake = async () => {
+    try {
+      const res = await fetch(`/api/current-stake/${validatorAddress}`)
+      if(res.status === 200) {
+        const data = await res.json() as {
+          data: {
+            currentBtcAmount: string,
+            currentCoreAmount: string
+          }
+        }
+        console.log(BigInt(data.data.currentBtcAmount), BigInt(data.data.currentCoreAmount))
+        setDelegatedCoin(BigInt(data.data.currentBtcAmount));
+        setCoreDelegatedCoin(BigInt(data.data.currentCoreAmount))
+      }
+    } catch (error) {
+      console.error(error)
+    }
+    
+  }
 
   const getData = async () => {
     try {
+      getCurrentStake()
       getAccPerShare();
-      getTotalBtcStake();
-      getTotalCoreStake();
       getRestakeHistory();
       getCommission();
     } catch (error) {
@@ -157,24 +170,7 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       }
     });
   };
-  const getTotalBtcStake = async () => {
-    try {
-      const res = await restakeHackthonContract.getPoolTotalStake(); // 0: amount, 1: prevUnlockTime
-      setDelegatedCoin(res.amount.toString());
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const getTotalCoreStake = async () => {
-    try {
-      const res = await restakeHackthonContract.totalCoreStaked();
-      setCoreDelegatedCoin(res);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
+  
   const getAccPerShare = async () => {
     const provider = new JsonRpcProvider(coreNetwork.rpcUrl);
     const latestBlock = await provider.getBlock('latest');
@@ -291,10 +287,9 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       getRestakeHistory,
       coreDelegatedCoin,
       coreValidatorStakedByUserAddress,
-      getTotalCoreStake,
-      getTotalBtcStake,
+      getCurrentStake,
     };
-  }, [getTotalCoreStake, getTotalBtcStake, delegatedCoin, coreReward, commission, validatorAddress, accPerShares, restakeHistories, delegatorsCount, restakeApr, reward, getReward, getRestakeHistory, coreDelegatedCoin, coreValidatorStakedByUserAddress]);
+  }, [, delegatedCoin, getCurrentStake, coreReward, commission, validatorAddress, accPerShares, restakeHistories, delegatorsCount, restakeApr, reward, getReward, getRestakeHistory, coreDelegatedCoin, coreValidatorStakedByUserAddress]);
 
   return (
     <ValidatorContext.Provider value={value}>

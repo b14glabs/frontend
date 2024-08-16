@@ -40,6 +40,8 @@ type Props = {
   validators: Array<Validator>;
   vBtcBalance: bigint;
   coreBalance: bigint;
+  totalCoreDelegated: bigint;
+  totalBtcDelegated: bigint;
   coredaoValidators: SearchCandidateCoreDao['data']['records'];
   priceFeedData: PriceFeedData;
   getVbtcBalance: () => void;
@@ -53,6 +55,8 @@ const defaultValues: Props = {
   },
   vBtcBalance: BigInt(0),
   coreBalance: BigInt(0),
+  totalCoreDelegated: BigInt(0),
+  totalBtcDelegated: BigInt(0),
   validators: [],
   coredaoValidators: [],
   priceFeedData: {
@@ -69,6 +73,8 @@ const DashboardContext = createContext(defaultValues);
 export const DashboardProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const [totalCoreDelegated, setTotalCoreDelegated] = useState(defaultValues.totalCoreDelegated)
+  const [totalBtcDelegated, setTotalBtcDelegated] = useState(defaultValues.totalBtcDelegated)
   const [vBtcBalance, setvBtcBalance] = useState<Props['vBtcBalance']>(
     defaultValues.vBtcBalance,
   );
@@ -205,6 +211,34 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
     const getMetrics = async () => {
       try {
         const allOperator = await sentryContract.getAllOperators();
+        const res = await fetch("/api/dashboard");
+        const data = await res.json() as {
+          metrics: {
+            totalBtcAmount: string,
+            totalCoreAmount: string,
+            validatorsCount: number
+          }
+          validators: Array<{
+            btcAmount: string,
+            coreAmount: string,
+            delegatorsCount: number,
+            validatorAddress: string
+          }>
+        };
+        setTotalCoreDelegated(BigInt(data.metrics.totalCoreAmount))
+        setTotalBtcDelegated(BigInt(data.metrics.totalBtcAmount))
+        const mapValidator: {
+          [key: string]: {
+            btcAmount: string,
+            coreAmount: string,
+          }
+        } = {}
+        data.validators.forEach(el => {
+          mapValidator[el.validatorAddress] = {
+            btcAmount: el.btcAmount,
+            coreAmount: el.coreAmount,
+          }
+        })
         const validators = [] as Array<Validator>;
         const promises = allOperator[0].map(async (operator: {
           commission: bigint,
@@ -227,8 +261,8 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
           const rewardPerSharePerYear = (rewardPerSharePerDay * 365) / 1e18; // in b14g.
           const balanceBtcPerYear = 57000 * Number(formatUnits(totalBtcStaked.toString(), 8)); // core + btc in $
           return {
-            btcAmount: totalBtcStaked,
-            coreAmount: totalCoreStaked,
+            btcAmount: mapValidator[operatorAddress].btcAmount,
+            coreAmount: mapValidator[operatorAddress].coreAmount,
             validatorAddress: operatorAddress,
             commission: Number(commission) / 100,
             apr: (rewardPerSharePerYear * 100) / balanceBtcPerYear,
@@ -259,8 +293,10 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
       priceFeedData,
       getVbtcBalance,
       getCoreBalance,
+      totalBtcDelegated,
+      totalCoreDelegated
     };
-  }, [coreApr, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData, getVbtcBalance, getCoreBalance]);
+  }, [totalCoreDelegated, totalBtcDelegated, coreApr, validators, coredaoValidators, coreBalance, vBtcBalance, priceFeedData, getVbtcBalance, getCoreBalance]);
   return (
     <DashboardContext.Provider value={value}>
       {children}

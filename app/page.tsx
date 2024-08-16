@@ -16,23 +16,18 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Info } from 'lucide-react';
 
 export default function Home() {
-  const { validators, coreApr } = useDashboardContext();
-  let totalCore = BigInt(0);
-  let totalBtc = BigInt(0);
-  validators.forEach(item => {
-    totalCore += item.coreAmount;
-    totalBtc += item.btcAmount;
-  })
+  const { validators, totalBtcDelegated, totalCoreDelegated, coreApr } = useDashboardContext();
+  
   const metricsCard = [
     {
       title: 'Total CORE Delegated',
       value: `${formatAmount(
-        +formatUnits(totalCore, 'ether'),
+        +formatUnits(totalCoreDelegated, 'ether'),
       )} CORE`,
     },
     {
       title: 'Total BTC Delegated',
-      value: `${formatAmount(+formatUnits(totalBtc, 8))} BTC`,
+      value: `${formatAmount(+formatUnits(totalBtcDelegated, 8))} BTC`,
     },
     {
       title: 'Observers',
