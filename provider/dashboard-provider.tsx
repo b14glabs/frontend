@@ -220,6 +220,7 @@ export const DashboardProvider: FC<{ children: ReactNode }> = ({
 
           const provider = new JsonRpcProvider(coreNetwork.rpcUrl);
           const latestBlock = await provider.getBlock('latest');
+          // @ts-ignore
           const round = Math.floor(latestBlock?.timestamp / 86400);
           let listAccPerShare = await operatorContract.getAccPerShareBatch(round - 14, round);
           const rewardPerSharePerDay = (Number(listAccPerShare[13]) - Number(listAccPerShare[0])) / 13;
