@@ -18,7 +18,7 @@ Before running the project, you need to set up a MongoDB connection. This requir
 ## Features
 - **Dashboard Page**: Lists all available validators and allows users to select a validator to delegate their tokens.
 - **Validator Page**: Displays delegate history, account per share charts for the last 14 days, total CORE and BTC stake, and provides options to delegate and claim rewards.
-- **My Staking Page**: Allows users to view their total staked amount, reward history, and claim rewards.
+- **My Staking Page**: Allows users to view their total staked amount, reward history.
 
 ## Pages
 
@@ -30,7 +30,7 @@ The Dashboard page provides an overview of all available validators. Users can:
 ### Validator Page
 The Validator page provides detailed information about a selected validator. Users can:
 - View the delegate history.
-- See account per share charts for the last 14 blocks.
+- See reward per BTC charts for the last 14 days.
 - Check the total CORE and BTC stake.
 - Delegate tokens to the validator.
 - Claim rewards.
