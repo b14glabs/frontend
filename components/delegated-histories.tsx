@@ -17,6 +17,17 @@ import { shortenString } from '@/utils/string';
 import { Info } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+function removeDuplicate(data: DelegateHistory[]){
+  const copyData = data.slice();
+  const seen = new Set();
+  return copyData.reduce((acc : any, obj) => {
+    if (!seen.has(obj.coreTxId)) {
+      seen.add(obj.coreTxId);
+      acc.push(obj);
+    }
+    return acc;
+  }, []);
+}
 export function DelegateBtcHistories({
   setBtcTx,
   btcTx,
@@ -38,7 +49,10 @@ export function DelegateBtcHistories({
       setLoading(true);
       const res = await fetch(`/api/delegated-btc-history/${address}`);
       const data = (await res.json()) as DelegateHistory[];
-      setHistories(data ?? []);
+      if(data) {
+        const listDelegated = removeDuplicate(data);
+        setHistories(listDelegated ?? []);
+      }
     } catch (error) {
       console.error(error);
     } finally {

@@ -78,6 +78,19 @@ const defaultValues: Props = {
 const ValidatorContext = createContext(defaultValues);
 const TWO_WEEK_DAYS = 14;
 
+function removeDuplicate(data: RestakeHistory['data']){
+  const copyData = data.slice();
+  const seen = new Set();
+  return copyData.reduce((acc : any, obj) => {
+    if (!seen.has(obj.coreTxId)) {
+      seen.add(obj.coreTxId);
+      acc.push(obj);
+    }
+    return acc;
+  }, []);
+}
+
+
 export const ValidatorProvider: FC<{ children: ReactNode }> = ({
                                                                  children,
                                                                }) => {
@@ -215,11 +228,12 @@ export const ValidatorProvider: FC<{ children: ReactNode }> = ({
       });
       if (res.status === 200) {
         const data = (await res.json()) as RestakeHistory;
+        const listRestake = removeDuplicate(data.data);
         setRestakeHistories({
           ...restakeHistories,
-          data: data.data,
+          data: listRestake,
           page: data.page,
-          totalCount: data.totalCount,
+          totalCount: listRestake.length,
           totalPage: data.totalPage,
         });
         setDelegatorsCount(data.delegatorsCount as number);

@@ -136,7 +136,14 @@ export async function POST(req: NextRequest) {
     }
     // Check new tx
     if (isNewTx) {
-      await restakeCol.insertOne(result);
+      await restakeCol.updateOne({
+        stakerAddress: result.stakerAddress,
+        coreTxId: result.coreTxId
+      }, {
+        $set: result
+      }, {
+        upsert: true
+      });
     } else {
       return response({ error: 'Already saved' }, 400);
     }
